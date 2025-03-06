@@ -46,9 +46,9 @@ typedef struct ObjFile_s
 
   struct PolygonalFace_s
   {
-    struct VertexCoord_s *vertex;
-    struct TextureCoord_s *texture; // optional
-    struct VertexNormal_s *normal;  // optional
+    struct VertexCoord_s *vertices[3];
+    struct TextureCoord_s *texture_coords[3]; // optional
+    struct VertexNormal_s *vertex_normals[3]; // optional
   } *faces_list;
   size_t num_faces;
   size_t max_num_faces;

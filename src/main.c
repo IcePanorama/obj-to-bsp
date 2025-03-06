@@ -169,11 +169,9 @@ process_new_texture_coords (ObjFile_t *obj_file, const char *input)
   float u, v = 0.0, w = 0.0;
   if (sscanf (input, "vt %f %f %f", &u, &v, &w) >= 1)
     {
-      /* clang-format off */
-      obj_file->texture_coords_list[obj_file ->num_texture_coords].u = u;
-      obj_file->texture_coords_list[obj_file ->num_texture_coords].v = v;
-      obj_file->texture_coords_list[obj_file ->num_texture_coords].w = w;
-      /* clang-format on */
+      obj_file->texture_coords_list[obj_file->num_texture_coords].u = u;
+      obj_file->texture_coords_list[obj_file->num_texture_coords].v = v;
+      obj_file->texture_coords_list[obj_file->num_texture_coords].w = w;
 
 #ifdef DEBUG_BUILD
       LOG_DEBUG_INFO ("vt %f %f %f\n", u, v, w);
@@ -242,6 +240,88 @@ process_new_vertex_coordinates (ObjFile_t *obj_file, const char *line)
 }
 
 static int
+process_new_face (ObjFile_t *obj_file, const char *input)
+{
+  if (obj_file->max_num_faces == 0)
+    {
+      if (create_list ((void **)&obj_file->faces_list,
+                       sizeof (struct PolygonalFace_s))
+          != 0)
+        {
+          LOG_ERROR_MSG ("Error creating faces list.\n");
+          return -1;
+        }
+
+      obj_file->max_num_faces = 1;
+    }
+
+  if (obj_file->num_faces == obj_file->max_num_faces)
+    {
+      obj_file->max_num_faces *= 2;
+      if (resize_list ((void **)&obj_file->faces_list,
+                       sizeof (struct PolygonalFace_s)
+                           * obj_file->max_num_faces)
+          != 0)
+        {
+          LOG_ERROR ("Error resizing faces list to size %ld.\n",
+                     obj_file->max_num_faces);
+          return -1;
+        }
+    }
+
+  struct PolygonalFace_s *curr_face
+      = &obj_file->faces_list[obj_file->num_faces];
+  struct VertexCoord_s **v_sublist = curr_face->vertices;
+  struct TextureCoord_s **t_sublist = curr_face->texture_coords;
+  struct VertexNormal_s **n_sublist = curr_face->vertex_normals;
+
+  char input_cpy[256];
+  strncpy (input_cpy, input, 255);
+  input_cpy[strlen (input_cpy) - 1] = '\0'; // Remove '\n'
+
+  size_t num_elements = 0;
+  char *token = strtok (input_cpy, " ");
+  token = strtok (NULL, " "); // skip 'f'
+  while (token != NULL)
+    {
+      printf ("%s\n", token);
+
+      size_t num_parts = 0;
+      char *part = strtok (token, "/");
+      while (part != NULL)
+        {
+          if (num_parts == 0)
+            {
+              printf ("v %d\n", atoi (part));
+              v_sublist[num_elements]
+                  = &obj_file->verticies_list[atoi (part) - 1];
+            }
+          else if (num_parts == 1)
+            {
+              printf ("t %d\n", atoi (part));
+              t_sublist[num_elements]
+                  = &obj_file->texture_coords_list[atoi (part) - 1];
+            }
+          else if (num_parts == 2)
+            {
+              printf ("n %d\n", atoi (part));
+              n_sublist[num_elements]
+                  = &obj_file->vertex_normals_list[atoi (part) - 1];
+            }
+
+          num_parts++;
+          part = strtok (NULL, "/");
+        }
+
+      num_elements++;
+      token = strtok (NULL, " ");
+    }
+
+  obj_file->num_faces++;
+  return 0;
+}
+
+static int
 read_obj_from_file (ObjFile_t obj_file[static 1], char path[static 1])
 {
   FILE *fptr = fopen (path, "r");
@@ -273,19 +353,24 @@ read_obj_from_file (ObjFile_t obj_file[static 1], char path[static 1])
           if (process_new_texture_coords (obj_file, line) != 0)
             goto clean_up;
         }
-      else if (line[0] == 'v')
+      else
         {
-          if (process_new_vertex_coordinates (obj_file, line) != 0)
-            goto clean_up;
-        }
-      else if (line[0] == 'f') // new face
-        {
-        }
-      else if (line[0] == 'o') // new object
-        {
-        }
-      else if (line[0] == 'l') // new line
-        {
+          switch (line[0])
+            {
+            case 'v':
+              if (process_new_vertex_coordinates (obj_file, line) != 0)
+                goto clean_up;
+              break;
+            case 'f':
+              if (process_new_face (obj_file, line) != 0)
+                goto clean_up;
+              break;
+            case 'o':
+            case 'l':
+            default:
+              LOG_DEBUG_INFO ("Ignoring: %s", line);
+              break;
+            }
         }
     }
 

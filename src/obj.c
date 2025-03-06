@@ -13,4 +13,8 @@ free_obj (ObjFile_t *o)
     free (o->parameter_space_verticies_list);
   if (o->texture_coords_list != NULL)
     free (o->texture_coords_list);
+  if (o->faces_list != NULL)
+    {
+      free (o->faces_list);
+    }
 }
