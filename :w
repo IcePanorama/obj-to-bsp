@@ -1,0 +1,176 @@
+#include "log.h"
+#include "obj.h"
+
+#include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define DEBUG_BUILD
+
+static int
+create_list (void **list, size_t size)
+{
+  *list = calloc (1, size);
+  if (*list == NULL)
+    return -1;
+
+  return 0;
+}
+
+static int
+resize_list (void **list, size_t new_size)
+{
+  void *tmp = realloc (*list, new_size);
+  if (tmp == NULL)
+    return -1;
+
+  *list = tmp;
+  return 0;
+}
+
+static int
+read_obj_from_file (ObjFile_t obj_file[static 1], char path[static 1])
+{
+  FILE *fptr = fopen (path, "r");
+  if (fptr == NULL)
+    {
+      LOG_ERROR ("Unable to open file, %s.\n", path);
+      return -1;
+    }
+
+  memset (obj_file, 0, sizeof (ObjFile_t));
+
+  char line[256];
+  while (fgets (line, sizeof (line), fptr) != NULL)
+    {
+      if (line[0] == '#') // ignore comments
+        continue;
+      else if (strncmp (line, "vn", 2) == 0) // new vertex normal
+        {
+          if (obj_file->max_num_vertex_normals == 0) // create verticies list
+            {
+              if (create_list ((void **)&obj_file->vertex_normals_list,
+                               sizeof (struct VertexNormal_s))
+                  != 0)
+                {
+                  LOG_ERROR_MSG ("Error creating vertex normals list.\n");
+                  goto clean_up;
+                }
+
+              obj_file->max_num_vertex_normals = 1;
+            }
+
+          if (obj_file->num_verticies == obj_file->max_num_verticies)
+            {
+              obj_file->max_num_verticies *= 2;
+              if (resize_list ((void **)&obj_file->verticies_list,
+                               sizeof (struct VertexCoord_s)
+                                   * obj_file->max_num_verticies)
+                  != 0)
+                {
+                  LOG_ERROR ("Error resizing vertices list to size %ld.\n",
+                             obj_file->max_num_verticies);
+                  goto clean_up;
+                }
+            }
+        }
+      else if (strncmp (line, "vp", 2) == 0) // new parameter space vertex
+        {
+        }
+      else if (strncmp (line, "vt", 2) == 0) // new texture coord
+        {
+        }
+      else if (line[0] == 'v') // new vertex
+        {
+          if (obj_file->max_num_verticies == 0) // create verticies list
+            {
+              if (create_list ((void **)&obj_file->verticies_list,
+                               sizeof (struct VertexCoord_s))
+                  != 0)
+                {
+                  LOG_ERROR_MSG ("Error creating verticies list.\n");
+                  goto clean_up;
+                }
+
+              obj_file->max_num_verticies = 1;
+            }
+
+          if (obj_file->num_verticies == obj_file->max_num_verticies)
+            {
+              obj_file->max_num_verticies *= 2;
+              if (resize_list ((void **)&obj_file->verticies_list,
+                               sizeof (struct VertexCoord_s)
+                                   * obj_file->max_num_verticies)
+                  != 0)
+                {
+                  LOG_ERROR ("Error resizing vertices list to size %ld.\n",
+                             obj_file->max_num_verticies);
+                  goto clean_up;
+                }
+            }
+
+          float x, y, z, w = 1.0;
+          if (sscanf (line, "v %f %f %f %f", &x, &y, &z, &w) >= 3)
+            {
+              obj_file->verticies_list[obj_file->num_verticies].x = x;
+              obj_file->verticies_list[obj_file->num_verticies].y = y;
+              obj_file->verticies_list[obj_file->num_verticies].z = z;
+              obj_file->verticies_list[obj_file->num_verticies].w = w;
+
+#ifdef DEBUG_BUILD
+              LOG_DEBUG_INFO ("v %f %f %f %f\n", x, y, z, w);
+#endif /* DEBUG_BUILD */
+
+              obj_file->num_verticies++;
+            }
+          else
+            {
+              LOG_ERROR ("Error parsing line: '%s'.\n", line);
+              goto clean_up;
+            }
+        }
+      else if (line[0] == 'f') // new face
+        {
+        }
+      else if (line[0] == 'o') // new object
+        {
+        }
+      else if (line[0] == 'l') // new line
+        {
+        }
+    }
+
+  fclose (fptr);
+  return 0;
+clean_up:
+  fclose (fptr);
+  return -1;
+}
+
+int
+main (int argc, char **argv)
+{
+  if (argc < 2)
+    {
+      LOG_ERROR ("Improper usage error.\n\ttry: %s path/to/file.obj\n",
+                 argv[0]);
+      return EXIT_FAILURE;
+    }
+
+  // FIXME: assuming argv[1] is an obj file for the time being.
+  ObjFile_t obj;
+  if (read_obj_from_file (&obj, argv[1]) != 0)
+    goto exit_failure;
+
+  // tmp
+  if (obj.max_num_verticies != 0)
+    free (obj.verticies_list);
+  return EXIT_SUCCESS;
+
+exit_failure:
+  if (obj.max_num_verticies != 0)
+    free (obj.verticies_list);
+  return EXIT_FAILURE;
+}

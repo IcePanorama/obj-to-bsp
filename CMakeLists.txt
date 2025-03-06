@@ -29,6 +29,8 @@ set(SRC_FILES
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
+    "${INCL_DIR}/log.h"
+    "${INCL_DIR}/obj.h"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
@@ -50,7 +52,7 @@ endif()
 find_program(VALGRIND_EXECUTABLE NAMES valgrind)
 if(VALGRIND_EXECUTABLE)
     add_custom_target(test
-        COMMAND ${VALGRIND_EXECUTABLE} --leak-check=yes ./${PROJECT_NAME}
+        COMMAND ${VALGRIND_EXECUTABLE} --leak-check=yes ./${PROJECT_NAME} test.obj
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Running valgrind leak check on executable."
     )
