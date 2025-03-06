@@ -25,6 +25,7 @@ add_compile_options(
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
     "${SRC_DIR}/main.c"
+    "${SRC_DIR}/obj.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")

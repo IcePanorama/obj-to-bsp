@@ -72,4 +72,6 @@ typedef struct ObjFile_s
   size_t max_num_objs;
 } ObjFile_t;
 
+void free_obj (ObjFile_t *o);
+
 #endif /* _WAVEFRONT_OBJ_FILE_H_ */

@@ -308,27 +308,8 @@ main (int argc, char **argv)
 
   // FIXME: assuming argv[1] is an obj file for the time being.
   ObjFile_t obj;
-  if (read_obj_from_file (&obj, argv[1]) != 0)
-    goto exit_failure;
+  int status = read_obj_from_file (&obj, argv[1]);
 
-  if (obj.verticies_list != NULL)
-    free (obj.verticies_list);
-  if (obj.vertex_normals_list != NULL)
-    free (obj.vertex_normals_list);
-  if (obj.parameter_space_verticies_list != NULL)
-    free (obj.parameter_space_verticies_list);
-  if (obj.texture_coords_list != NULL)
-    free (obj.texture_coords_list);
-  return EXIT_SUCCESS;
-
-exit_failure:
-  if (obj.verticies_list != NULL)
-    free (obj.verticies_list);
-  if (obj.vertex_normals_list != NULL)
-    free (obj.vertex_normals_list);
-  if (obj.parameter_space_verticies_list != NULL)
-    free (obj.parameter_space_verticies_list);
-  if (obj.texture_coords_list != NULL)
-    free (obj.texture_coords_list);
-  return EXIT_FAILURE;
+  free_obj (&obj);
+  return status == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
