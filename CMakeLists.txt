@@ -20,6 +20,7 @@ add_compile_options(
     -Wshadow
     -fanalyzer
     -g
+    -DDEBUG_BUILD
 )
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")

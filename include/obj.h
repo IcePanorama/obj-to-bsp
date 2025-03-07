@@ -2,6 +2,7 @@
 #define _WAVEFRONT_OBJ_FILE_H_
 
 #include <stddef.h>
+#include <stdio.h>
 #include <sys/types.h>
 
 typedef struct ObjFile_s
@@ -56,6 +57,7 @@ typedef struct ObjFile_s
   size_t num_faces;
   size_t max_num_faces;
 
+  // Won't be using these or Objects for bsp trees, I think?
   struct Polyline_s
   {
     struct VertexCoord_s **vertices;
@@ -75,6 +77,8 @@ typedef struct ObjFile_s
   size_t max_num_objs;
 } ObjFile_t;
 
-void free_obj (ObjFile_t *o);
+int create_obj_file_from_file (ObjFile_t o[static 1],
+                               const char file_path[static 1]);
+void free_obj_file (ObjFile_t *o);
 
 #endif /* _WAVEFRONT_OBJ_FILE_H_ */
