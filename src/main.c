@@ -54,6 +54,27 @@ main (int argc, char **argv)
 
   printf ("Centroid: (%f, %f, %f, %f)\n", x_total, y_total, z_total, w_total);
 
+  /** 
+   *  Covariance matrix structure:
+   *  __                                               __
+   *  |      var(x) covar(x, y) covar(x, z) covar(x, w) |
+   *  | covar(x, y)      var(y) covar(y, z) covar(y, w) |
+   *  | covar(x, z) covar(y, z)      var(z) covar(z, w) |
+   *  | covar(x, w) covar(y, w) covar(z, w)      var(w) |
+   *  --                                               --
+   *
+   *  Note that the matrix is mirrored across the diagonal. Going to be using
+   *  population variance/covariance for these calculations.
+   *
+   *  population_variance(x) = sum(from: 0, to: n - 1, (x_i - mean)^2) / n
+   *  population_covariance(x, y) =
+   *    sum(from: 0, to: n - 1, (x_i - mean_x)(y_i - mean_y)) / n
+   *
+   *  where n = `obj.num_faces`.
+   *
+   *  See: https://www.geeksforgeeks.org/covariance-matrix/
+   */
+
   free_obj_file (&obj);
   return status == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
 }
