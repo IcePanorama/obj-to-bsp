@@ -4,10 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef DEBUG_BUILD
-#include <assert.h>
-#endif /* DEBUG_BUILD */
-
 static int
 create_list (void **list, size_t size)
 {
@@ -280,6 +276,16 @@ process_new_face (ObjFile_t *obj_file, const char *input)
       *token = '\0';
       token++;
 
+#ifdef DEBUG_BUILD
+      if (num_elements >= 3)
+        {
+          LOG_ERROR ("%ld-dimensional polygon faces unsupported. Please use "
+                     "triangles.\n",
+                     num_elements);
+          return -1;
+        }
+#endif /* DEBUG_BUILD */
+
       size_t num_parts = 0;
       char *idx = strtok (input_ptr, "/");
       while (idx != NULL)
@@ -287,21 +293,35 @@ process_new_face (ObjFile_t *obj_file, const char *input)
           if (num_parts == 0)
             {
 #ifdef DEBUG_BUILD
-              assert ((size_t)(atoi (idx) - 1) < obj_file->num_verticies);
+              if ((size_t)(atoi (idx) - 1) >= obj_file->num_verticies)
+                {
+                  LOG_ERROR ("Invalid vertex index, %d.\n", atoi (idx) - 1);
+                  return -1;
+                }
 #endif /* DEBUG_BUILD */
               v_sublist[num_elements] = atoi (idx) - 1;
             }
           else if (num_parts == 1)
             {
 #ifdef DEBUG_BUILD
-              assert ((size_t)(atoi (idx) - 1) < obj_file->num_texture_coords);
+              if ((size_t)(atoi (idx) - 1) >= obj_file->num_texture_coords)
+                {
+                  LOG_ERROR ("Invalid texture coordinate index, %d.\n",
+                             atoi (idx) - 1);
+                  return -1;
+                }
 #endif /* DEBUG_BUILD */
               t_sublist[num_elements] = atoi (idx) - 1;
             }
           else if (num_parts == 2)
             {
 #ifdef DEBUG_BUILD
-              assert ((size_t)(atoi (idx) - 1) < obj_file->num_vertex_normals);
+              if ((size_t)(atoi (idx) - 1) >= obj_file->num_vertex_normals)
+                {
+                  LOG_ERROR ("Invalid vertex normal index, %d.\n",
+                             atoi (idx) - 1);
+                  return -1;
+                }
 #endif /* DEBUG_BUILD */
               n_sublist[num_elements] = atoi (idx) - 1;
             }
@@ -318,7 +338,6 @@ process_new_face (ObjFile_t *obj_file, const char *input)
       token = strchr (input_ptr, ' ');
     }
 
-  face->num_elements = num_elements;
   obj_file->num_faces++;
   return 0;
 }

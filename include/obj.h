@@ -46,13 +46,15 @@ typedef struct ObjFile_s
   size_t num_parameter_space_verticies;
   size_t max_num_parameter_space_verticies;
 
-  /** Stores index of its verticies, texture coordinates, & vertex normals. */
+  /**
+   *  Stores index of its verticies, texture coordinates, & vertex normals.
+   *  Only supporting triangles for easier centroid calculations.
+   */
   struct PolygonalFace_s
   {
-    size_t num_elements;
-    ssize_t vertices[4];
-    ssize_t texture_coords[4]; // optional
-    ssize_t vertex_normals[4]; // optional
+    ssize_t vertices[3];
+    ssize_t texture_coords[3]; // optional
+    ssize_t vertex_normals[3]; // optional
   } *faces_list;
   size_t num_faces;
   size_t max_num_faces;
