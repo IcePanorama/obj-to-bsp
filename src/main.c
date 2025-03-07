@@ -9,6 +9,10 @@
 
 #define DEBUG_BUILD
 
+#ifdef DEBUG_BUILD
+#include <assert.h>
+#endif /* DEBUG_BUILD */
+
 static int
 create_list (void **list, size_t size)
 {
@@ -183,6 +187,7 @@ process_new_texture_coords (ObjFile_t *obj_file, const char *input)
       return -1;
     }
 
+  obj_file->num_texture_coords++;
   return 0;
 }
 
@@ -269,54 +274,66 @@ process_new_face (ObjFile_t *obj_file, const char *input)
         }
     }
 
-  struct PolygonalFace_s *curr_face
-      = &obj_file->faces_list[obj_file->num_faces];
-  struct VertexCoord_s **v_sublist = curr_face->vertices;
-  struct TextureCoord_s **t_sublist = curr_face->texture_coords;
-  struct VertexNormal_s **n_sublist = curr_face->vertex_normals;
+  struct PolygonalFace_s *face = &obj_file->faces_list[obj_file->num_faces];
+  ssize_t *v_sublist = face->vertices;
+  ssize_t *t_sublist = face->texture_coords;
+  ssize_t *n_sublist = face->vertex_normals;
+
+#ifdef DEBUG_BUILD
+  LOG_DEBUG_INFO ("%s", input);
+#endif /* DEBUG_BUILD */
 
   char input_cpy[256];
   strncpy (input_cpy, input, 255);
-  input_cpy[strlen (input_cpy) - 1] = '\0'; // Remove '\n'
+  input_cpy[strlen (input_cpy) - 1] = ' '; // Remove '\n'
 
   size_t num_elements = 0;
-  char *token = strtok (input_cpy, " ");
-  token = strtok (NULL, " "); // skip 'f'
+  char *input_ptr = input_cpy + 2;
+  char *token = strchr (input_ptr, ' ');
   while (token != NULL)
     {
-      printf ("%s\n", token);
+      *token = '\0';
+      token++;
 
       size_t num_parts = 0;
-      char *part = strtok (token, "/");
-      while (part != NULL)
+      char *idx = strtok (input_ptr, "/");
+      while (idx != NULL)
         {
           if (num_parts == 0)
             {
-              printf ("v %d\n", atoi (part));
-              v_sublist[num_elements]
-                  = &obj_file->verticies_list[atoi (part) - 1];
+#ifdef DEBUG_BUILD
+              assert ((size_t)(atoi (idx) - 1) < obj_file->num_verticies);
+#endif /* DEBUG_BUILD */
+              v_sublist[num_elements] = atoi (idx) - 1;
             }
           else if (num_parts == 1)
             {
-              printf ("t %d\n", atoi (part));
-              t_sublist[num_elements]
-                  = &obj_file->texture_coords_list[atoi (part) - 1];
+#ifdef DEBUG_BUILD
+              assert ((size_t)(atoi (idx) - 1) < obj_file->num_texture_coords);
+#endif /* DEBUG_BUILD */
+              t_sublist[num_elements] = atoi (idx) - 1;
             }
           else if (num_parts == 2)
             {
-              printf ("n %d\n", atoi (part));
-              n_sublist[num_elements]
-                  = &obj_file->vertex_normals_list[atoi (part) - 1];
+#ifdef DEBUG_BUILD
+              assert ((size_t)(atoi (idx) - 1) < obj_file->num_vertex_normals);
+#endif /* DEBUG_BUILD */
+              n_sublist[num_elements] = atoi (idx) - 1;
             }
 
           num_parts++;
-          part = strtok (NULL, "/");
+          /** If optional texture coords not provided, skip. */
+          if ((idx + strlen (idx) + 1)[0] == '/')
+            num_parts++;
+          idx = strtok (NULL, "/");
         }
 
+      input_ptr = token;
       num_elements++;
-      token = strtok (NULL, " ");
+      token = strchr (input_ptr, ' ');
     }
 
+  face->num_elements = num_elements;
   obj_file->num_faces++;
   return 0;
 }

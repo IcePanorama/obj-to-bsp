@@ -2,6 +2,7 @@
 #define _WAVEFRONT_OBJ_FILE_H_
 
 #include <stddef.h>
+#include <sys/types.h>
 
 typedef struct ObjFile_s
 {
@@ -44,11 +45,13 @@ typedef struct ObjFile_s
   size_t num_parameter_space_verticies;
   size_t max_num_parameter_space_verticies;
 
+  /** Stores index of its verticies, texture coordinates, & vertex normals. */
   struct PolygonalFace_s
   {
-    struct VertexCoord_s *vertices[3];
-    struct TextureCoord_s *texture_coords[3]; // optional
-    struct VertexNormal_s *vertex_normals[3]; // optional
+    size_t num_elements;
+    ssize_t vertices[4];
+    ssize_t texture_coords[4]; // optional
+    ssize_t vertex_normals[4]; // optional
   } *faces_list;
   size_t num_faces;
   size_t max_num_faces;

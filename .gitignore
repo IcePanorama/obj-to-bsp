@@ -4,7 +4,7 @@ OBJtoBSP
 *.bsp
 
 # Valgrind related
-*.vgcore
+vgcore.*
 
 # Build related
 build/*
