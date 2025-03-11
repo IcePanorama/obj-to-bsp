@@ -2,6 +2,7 @@
 #include "obj.h"
 #include "utils.h"
 
+#include <gsl/gsl_eigen.h>
 #include <stdlib.h>
 
 int
@@ -27,6 +28,9 @@ main (int argc, char **argv)
   float covar_mat[16] = { 0 };
   calc_covar_mat_from_obj_centroid (&obj, &centroid, covar_mat);
   print_covar_mat (covar_mat);
+
+  gsl_eigen_symm_workspace *work = gsl_eigen_symm_alloc (4);
+  gsl_eigen_symm_free (work);
 
 prg_exit:
   free_obj_file (&obj);

@@ -33,6 +33,8 @@ set(SRC_FILES
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
     "${INCL_DIR}/utils.h"
+    #"${INCL_DIR}/lapack.h"
+    #"${INCL_DIR}/lapacke_mangling.h"
     "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj.h"
 )
@@ -41,9 +43,12 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCL_DIR})
 
-set(LIBS_DIR "${PROJECT_SOURCE_DIR}/libs")
-target_link_libraries(${PROJECT_NAME} "${LIBS_DIR}/liblapack.a")
-
+find_library(GNU_SCI_LIB gsl REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${GNU_SCI_LIB})
+find_library(GNU_SCI_LIB_CBLAS gslcblas REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${GNU_SCI_LIB_CBLAS})
+find_library(MAT_LIB m REQUIRED)
+target_link_libraries(${PROJECT_NAME} ${MAT_LIB})
 
 find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format)
 if(CLANG_FORMAT_EXECUTABLE)

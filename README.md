@@ -9,7 +9,7 @@ gcc
 git
 cmake
 make
-gcc-gfortran # LAPACK dependency
+gsl-devel # GNU Scientific Library
 valgrind # optional
 clang-format # optional
 ```
