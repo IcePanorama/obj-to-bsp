@@ -41,6 +41,10 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCL_DIR})
 
+set(LIBS_DIR "${PROJECT_SOURCE_DIR}/libs")
+target_link_libraries(${PROJECT_NAME} "${LIBS_DIR}/liblapack.a")
+
+
 find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format)
 if(CLANG_FORMAT_EXECUTABLE)
     add_custom_target(format
