@@ -36,8 +36,8 @@ struct VertexCoord_s calc_centroid_from_obj (ObjFile_t o[static 1]);
  */
 void calc_covar_mat_from_obj_centroid (ObjFile_t o[static 1],
                                        struct VertexCoord_s c[static 1],
-                                       float output[4][4]);
+                                       float output[16]);
 /** Prints the given covariance matrix, `m`, via `LOG_DEBUG_INFO`.*/
-void print_covar_mat (float m[4][4]);
+void print_covar_mat (float m[16]);
 
 #endif /* _COVARIANCE_MATRIX_H_ */

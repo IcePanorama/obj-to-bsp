@@ -1,4 +1,4 @@
-#include "covar.h"
+#include "utils.h"
 #include "log.h"
 
 struct VertexCoord_s
@@ -38,7 +38,7 @@ calc_centroid_from_obj (ObjFile_t o[static 1])
 
 static void
 calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
-                                 float output[4][4])
+                                 float output[16])
 {
   float x_var = 0.0;
   float y_var = 0.0;
@@ -66,15 +66,15 @@ calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
   z_var /= o->num_faces * 3;
   w_var /= o->num_faces * 3;
 
-  output[0][0] = x_var;
-  output[1][1] = y_var;
-  output[2][2] = z_var;
-  output[3][3] = w_var;
+  output[0] = x_var;
+  output[5] = y_var;
+  output[10] = z_var;
+  output[15] = w_var;
 }
 
 static void
 calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
-                               float output[4][4])
+                               float output[16])
 {
   float x_y_covar = 0.0;
   float x_z_covar = 0.0;
@@ -110,27 +110,27 @@ calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
   y_w_covar /= o->num_faces * 3;
   z_w_covar /= o->num_faces * 3;
 
-  output[0][1] = output[1][0] = x_y_covar;
-  output[0][2] = output[2][0] = x_z_covar;
-  output[0][3] = output[3][0] = x_w_covar;
+  output[1] = output[4] = x_y_covar;
+  output[2] = output[8] = x_z_covar;
+  output[3] = output[12] = x_w_covar;
 
-  output[1][2] = output[2][1] = y_z_covar;
-  output[1][3] = output[3][1] = y_w_covar;
+  output[6] = output[9] = y_z_covar;
+  output[7] = output[13] = y_w_covar;
 
-  output[2][3] = output[3][2] = z_w_covar;
+  output[11] = output[14] = z_w_covar;
 }
 
 void
 calc_covar_mat_from_obj_centroid (ObjFile_t o[static 1],
                                   struct VertexCoord_s c[static 1],
-                                  float output[4][4])
+                                  float output[16])
 {
   calculate_var_from_obj_centroid (o, c, output);
   calc_covars_from_obj_centroid (o, c, output);
 }
 
 void
-print_covar_mat (float m[4][4])
+print_covar_mat (float m[16])
 {
   LOG_DEBUG_INFO ("%s\n", "Covariance Matrix:");
   for (size_t i = 0; i < 4; i++)
@@ -138,7 +138,7 @@ print_covar_mat (float m[4][4])
       char strs[4][12] = { 0 };
       for (size_t j = 0; j < 4; j++)
         {
-          sprintf (strs[j], "%3.6f ", m[i][j]);
+          sprintf (strs[j], "%3.6f ", m[i * 4 + j]);
         }
       LOG_DEBUG_INFO ("%11s %11s %11s %11s%c", strs[0], strs[1], strs[2],
                       strs[3], '\n');

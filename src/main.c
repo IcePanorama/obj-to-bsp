@@ -1,6 +1,6 @@
-#include "covar.h"
 #include "log.h"
 #include "obj.h"
+#include "utils.h"
 
 #include <stdlib.h>
 
@@ -24,7 +24,7 @@ main (int argc, char **argv)
   LOG_DEBUG_INFO ("Centroid: (%f, %f, %f, %f)\n", centroid.x, centroid.y,
                   centroid.z, centroid.w);
 
-  float covar_mat[4][4] = { 0 };
+  float covar_mat[16] = { 0 };
   calc_covar_mat_from_obj_centroid (&obj, &centroid, covar_mat);
   print_covar_mat (covar_mat);
 
