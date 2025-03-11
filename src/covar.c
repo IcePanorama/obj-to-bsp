@@ -62,10 +62,10 @@ calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
         }
     }
 
-  x_var /= o->num_verticies;
-  y_var /= o->num_verticies;
-  z_var /= o->num_verticies;
-  w_var /= o->num_verticies;
+  x_var /= o->num_faces * 3;
+  y_var /= o->num_faces * 3;
+  z_var /= o->num_faces * 3;
+  w_var /= o->num_faces * 3;
 
   output[0][0] = x_var;
   output[1][1] = y_var;
@@ -104,12 +104,12 @@ calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
         }
     }
 
-  x_y_covar /= o->num_verticies;
-  x_z_covar /= o->num_verticies;
-  x_w_covar /= o->num_verticies;
-  y_z_covar /= o->num_verticies;
-  y_w_covar /= o->num_verticies;
-  z_w_covar /= o->num_verticies;
+  x_y_covar /= o->num_faces * 3;
+  x_z_covar /= o->num_faces * 3;
+  x_w_covar /= o->num_faces * 3;
+  y_z_covar /= o->num_faces * 3;
+  y_w_covar /= o->num_faces * 3;
+  z_w_covar /= o->num_faces * 3;
 
   output[0][1] = output[1][0] = x_y_covar;
   output[0][2] = output[2][0] = x_z_covar;

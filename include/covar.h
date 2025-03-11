@@ -30,7 +30,7 @@ struct VertexCoord_s calc_centroid_from_obj (ObjFile_t o[static 1]);
  *  population_covariance(x, y) =
  *    sum(from: 0, to: n - 1, (x_i - mean_x)(y_i - mean_y)) / n
  *
- *  where n = `obj.num_faces`.
+ *  where n = `o->num_verticies`.
  *
  *  See: https://www.geeksforgeeks.org/covariance-matrix/
  */
