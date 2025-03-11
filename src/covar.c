@@ -1,6 +1,5 @@
 #include "covar.h"
 #include "log.h"
-#include <stdio.h>
 
 struct VertexCoord_s
 calc_centroid_from_obj (ObjFile_t o[static 1])
