@@ -25,12 +25,14 @@ add_compile_options(
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
+    "${SRC_DIR}/covar.c"
     "${SRC_DIR}/main.c"
     "${SRC_DIR}/obj.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
+    "${INCL_DIR}/covar.h"
     "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj.h"
 )
