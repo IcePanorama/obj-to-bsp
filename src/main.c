@@ -1,6 +1,7 @@
 #include "log.h"
 #include "obj.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 
 /**
@@ -12,12 +13,6 @@
 static struct VertexCoord_s
 calculate_centroid_from_obj (ObjFile_t o[static 1])
 {
-  /**
-   *  If you'd like to verify the output of this calculation in blender,
-   *  export your obj file with the following settings:
-   *  + Forward Axis: Y
-   *  + Up Axis: Z
-   */
   float x_total = 0.0;
   float y_total = 0.0;
   float z_total = 0.0;
@@ -86,6 +81,54 @@ calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
   output[3][3] = w_var;
 }
 
+static void
+calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
+                               float output[4][4])
+{
+  float x_y_covar = 0.0;
+  float x_z_covar = 0.0;
+  float x_w_covar = 0.0;
+  float y_z_covar = 0.0;
+  float y_w_covar = 0.0;
+  float z_w_covar = 0.0;
+
+  for (size_t i = 0; i < o->num_faces; i++)
+    {
+      struct PolygonalFace_s *curr = &o->faces_list[i];
+      for (size_t j = 0; j < 3; j++)
+        {
+          x_y_covar += (o->verticies_list[curr->vertices[j]].x - c->x)
+                       * ((o->verticies_list[curr->vertices[j]].y - c->y));
+          x_z_covar += (o->verticies_list[curr->vertices[j]].x - c->x)
+                       * ((o->verticies_list[curr->vertices[j]].z - c->z));
+          x_w_covar += (o->verticies_list[curr->vertices[j]].x - c->x)
+                       * ((o->verticies_list[curr->vertices[j]].w - c->w));
+          y_z_covar += (o->verticies_list[curr->vertices[j]].y - c->y)
+                       * ((o->verticies_list[curr->vertices[j]].z - c->z));
+          y_w_covar += (o->verticies_list[curr->vertices[j]].y - c->y)
+                       * ((o->verticies_list[curr->vertices[j]].w - c->w));
+          z_w_covar += (o->verticies_list[curr->vertices[j]].z - c->z)
+                       * ((o->verticies_list[curr->vertices[j]].w - c->w));
+        }
+    }
+
+  x_y_covar /= o->num_verticies;
+  x_z_covar /= o->num_verticies;
+  x_w_covar /= o->num_verticies;
+  y_z_covar /= o->num_verticies;
+  y_w_covar /= o->num_verticies;
+  z_w_covar /= o->num_verticies;
+
+  output[0][1] = output[1][0] = x_y_covar;
+  output[0][2] = output[2][0] = x_z_covar;
+  output[0][3] = output[3][0] = x_w_covar;
+
+  output[1][2] = output[2][1] = y_z_covar;
+  output[1][3] = output[3][1] = y_w_covar;
+
+  output[2][3] = output[3][2] = z_w_covar;
+}
+
 /**
  *  Covariance matrix structure:
  *  __                                               __
@@ -106,14 +149,27 @@ calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
  *
  *  See: https://www.geeksforgeeks.org/covariance-matrix/
  */
-static int
+static void
 calculate_covariance_mat_from_obj_centroid (ObjFile_t *o,
                                             struct VertexCoord_s *c,
                                             float output[4][4])
 {
   calculate_var_from_obj_centroid (o, c, output);
+  calc_covars_from_obj_centroid (o, c, output);
+}
 
-  return 0;
+static void
+print_covar_mat (float m[4][4])
+{
+  puts ("Covariance matrix:");
+  for (size_t i = 0; i < 4; i++)
+    {
+      for (size_t j = 0; j < 4; j++)
+        {
+          printf ("%3.6f ", m[i][j]);
+        }
+      putchar ('\n');
+    }
 }
 
 int
@@ -138,6 +194,8 @@ main (int argc, char **argv)
   calculate_covariance_mat_from_obj_centroid (&obj, &centroid, covar_mat);
   printf ("Variances: %f, %f, %f, %f\n", covar_mat[0][0], covar_mat[1][1],
           covar_mat[2][2], covar_mat[3][3]);
+
+  print_covar_mat (covar_mat);
 
   free_obj_file (&obj);
   return status == 0 ? EXIT_SUCCESS : EXIT_FAILURE;
