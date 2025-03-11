@@ -82,10 +82,6 @@ main (int argc, char **argv)
 
   puts ("---------------");
 
-  /*
-   *  FIXME: The output from this differs from that of wolfram alpha. Need to
-   *  explore why this might be.
-   */
   for (size_t i = 0; i < 4; i++)
     {
       printf ("Eigenvector %ld:\n", i + 1);
