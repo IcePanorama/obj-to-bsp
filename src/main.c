@@ -32,6 +32,7 @@ main (int argc, char **argv)
   calc_covar_mat_from_obj_centroid (&obj, &centroid, covar_mat);
   print_covar_mat (covar_mat);
 
+  // FIXME: clean up all this garbage:
   gsl_matrix *mat = gsl_matrix_alloc (4, 4);
   status = (mat != NULL) ? 0 : -1;
   if (status != 0)
@@ -60,17 +61,37 @@ main (int argc, char **argv)
 
   gsl_eigen_symmv (mat, eigenvals, eigenvecs, work);
 
+  puts ("Eigenvalues:");
   for (size_t i = 0; i < 4; i++)
     {
       printf ("%2.4f ", gsl_vector_get (eigenvals, i));
     }
   putchar ('\n');
 
+  puts ("---------------");
+
+  puts ("Raw matrix:");
   for (size_t i = 0; i < 4; i++)
     {
       for (size_t j = 0; j < 4; j++)
         {
           printf ("%2.4f ", gsl_matrix_get (mat, i, j));
+        }
+      putchar ('\n');
+    }
+
+  puts ("---------------");
+
+  /*
+   *  FIXME: The output from this differs from that of wolfram alpha. Need to
+   *  explore why this might be.
+   */
+  for (size_t i = 0; i < 4; i++)
+    {
+      printf ("Eigenvector %ld:\n", i + 1);
+      for (size_t j = 0; j < 4; j++)
+        {
+          printf ("%2.4f ", gsl_matrix_get (mat, j, i));
         }
       putchar ('\n');
     }
