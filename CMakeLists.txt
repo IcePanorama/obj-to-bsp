@@ -33,8 +33,6 @@ set(SRC_FILES
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
     "${INCL_DIR}/utils.h"
-    #"${INCL_DIR}/lapack.h"
-    #"${INCL_DIR}/lapacke_mangling.h"
     "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj.h"
 )

@@ -54,12 +54,10 @@ main (int argc, char **argv)
     }
   putchar ('\n');
 
-  /**
-   *  Need to create a dynamic array type and then stuff the remnants into a
-   *  bsp interface thingy.
-   */
-  size_t front_len = 0;
+  /*
+  size_t front_len = 1;
   size_t front_max = 1;
+  */
   struct PolygonalFace_s **front
       = calloc (1, sizeof (struct PolygonalFace_s *));
   if (front == NULL)
@@ -67,8 +65,10 @@ main (int argc, char **argv)
       free_obj_file (&obj);
       return EXIT_FAILURE;
     }
-  size_t back_len = 0;
+  /*
+  size_t back_len = 1;
   size_t back_max = 1;
+  */
   struct PolygonalFace_s **back
       = calloc (1, sizeof (struct PolygonalFace_s *));
   if (back == NULL)
@@ -77,8 +77,10 @@ main (int argc, char **argv)
       free_obj_file (&obj);
       return EXIT_FAILURE;
     }
-  size_t split_len = 0;
+  /*
+  size_t split_len = 1;
   size_t split_max = 1;
+  */
   struct PolygonalFace_s **split
       = calloc (1, sizeof (struct PolygonalFace_s *));
   if (split == NULL)
@@ -91,74 +93,30 @@ main (int argc, char **argv)
 
   for (size_t i = 0; i < obj.num_faces; i++)
     {
-      struct PolygonalFace_s *curr = &obj.faces_list[i];
       int8_t cnt = 0;
       for (size_t j = 0; j < 3; j++)
         {
-          float tmp[4] = { curr->verts[j]->x, curr->verts[j]->y,
-                           curr->verts[j]->z, curr->verts[j]->w };
+          float tmp[4] = { obj.verticies_list[i].x, obj.verticies_list[i].y,
+                           obj.verticies_list[i].z, obj.verticies_list[i].w };
           float dist = signed_dist (centroid, largest_evec, tmp);
+
+          printf ("%f\n", dist);
 
           cnt += dist > 0 ? 1 : -1;
         }
 
       if (cnt == -3)
-        {
-          if (back_len == back_max)
-            {
-              back_max *= 2;
-              struct PolygonalFace_s **tmp = realloc (
-                  back, back_max * sizeof (struct PolygonalFace_s *));
-              if (tmp == NULL)
-                {
-                  LOG_ERROR ("Failed to resize back list to size %ld.\n",
-                             back_max);
-                  goto err;
-                }
-
-              back = tmp;
-            }
-          back[back_len] = curr;
-          back_len++;
-        }
+      {
+      // add to back
+      }
       else if (cnt == 3)
-        {
-          if (front_len == front_max)
-            {
-              front_max *= 2;
-              struct PolygonalFace_s **tmp = realloc (
-                  front, front_max * sizeof (struct PolygonalFace_s *));
-              if (tmp == NULL)
-                {
-                  LOG_ERROR ("Failed to resize front list to size %ld.\n",
-                             front_max);
-                  goto err;
-                }
-
-              front = tmp;
-            }
-          front[front_len] = curr;
-          front_len++;
-        }
+      {
+      // add to front
+      }
       else
-        {
-          if (split_len == split_max)
-            {
-              split_max *= 2;
-              struct PolygonalFace_s **tmp = realloc (
-                  split, split_max * sizeof (struct PolygonalFace_s *));
-              if (tmp == NULL)
-                {
-                  LOG_ERROR ("Failed to resize split list to size %ld.\n",
-                             split_max);
-                  goto err;
-                }
-
-              split = tmp;
-            }
-          split[split_len] = curr;
-          split_len++;
-        }
+      {
+        // add to split
+      }
     }
 
   /*
@@ -182,10 +140,4 @@ main (int argc, char **argv)
   free (front);
   free_obj_file (&obj);
   return EXIT_SUCCESS;
-err:
-  free (split);
-  free (back);
-  free (front);
-  free_obj_file (&obj);
-  return EXIT_FAILURE;
 }
