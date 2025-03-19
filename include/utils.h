@@ -37,7 +37,21 @@ struct VertexCoord_s calc_centroid_from_obj (ObjFile_t o[static 1]);
 void calc_covar_mat_from_obj_centroid (ObjFile_t o[static 1],
                                        struct VertexCoord_s c[static 1],
                                        float output[16]);
+
 /** Prints the given covariance matrix, `m`, via `LOG_DEBUG_INFO`.*/
 void print_covar_mat (float m[16]);
+
+/**
+ *  Calculates eigenvalues and eigenvectors for `in` using gsl for all the hard
+ *  work. `eigenvecs` is converted from column- to row-major order internally.
+ *  No particular reason why, that just seems to make more sense for
+ *  me ¯\_(ツ)_/¯.
+ *  Param:  in         matrix from which the calculations should be made
+ *  Param:  eigenvals  output of eigenvalue calculation
+ *  Param:  eigenvecs  output of eigenvector calculation
+ *  Returns: zero on success, non-zero on failure.
+ */
+int calc_eigenvals_vecs (float in[static 16], float eigenvals[static 4],
+                         float eigenvecs[static 4][4]);
 
 #endif /* _COVARIANCE_MATRIX_H_ */
