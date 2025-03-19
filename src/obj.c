@@ -226,7 +226,6 @@ process_new_vertex_coordinates (ObjFile_t *o, const char *line)
   return 0;
 }
 
-/*
 static int
 process_new_face (ObjFile_t *o, const char *input)
 {
@@ -318,7 +317,7 @@ process_new_face (ObjFile_t *o, const char *input)
             }
 
           num_parts++;
-          ** If optional texture coords not provided, skip. *
+          /** If optional texture coords not provided, skip. */
           if ((idx + strlen (idx) + 1)[0] == '/')
             num_parts++;
           idx = strtok (NULL, "/");
@@ -332,7 +331,6 @@ process_new_face (ObjFile_t *o, const char *input)
   o->num_faces++;
   return 0;
 }
-*/
 
 static int
 process_verts_txt_coords (ObjFile_t o[static 1], FILE *fptr)
@@ -373,6 +371,28 @@ process_verts_txt_coords (ObjFile_t o[static 1], FILE *fptr)
   return 0;
 }
 
+static int
+process_faces (ObjFile_t o[static 1], FILE fptr[static 1])
+{
+  if (fseek (fptr, 0x0, SEEK_SET) != 0)
+    {
+      LOG_ERROR_MSG ("Failed to seek to beginning of file.\n");
+      return -1;
+    }
+
+  char line[256];
+  while (fgets (line, sizeof (line), fptr) != NULL)
+    {
+      if (line[0] == 'f')
+        {
+          if (process_new_face (o, line) != 0)
+            return -1;
+        }
+    }
+
+  return 0;
+}
+
 int
 create_obj_file_from_file (ObjFile_t o[static 1],
                            const char file_path[static 1])
@@ -386,50 +406,8 @@ create_obj_file_from_file (ObjFile_t o[static 1],
 
   memset (o, 0, sizeof (ObjFile_t));
 
-  /*
-  char line[256];
-  while (fgets (line, sizeof (line), fptr) != NULL)
-    {
-      if (line[0] == '#') // ignore comments
-        continue;
-      else if (strncmp (line, "vn", 2) == 0)
-        {
-          if (process_new_vertex_norm (o, line) != 0)
-            goto clean_up;
-        }
-      else if (strncmp (line, "vp", 2) == 0)
-        {
-          if (process_new_parameter_space_vertex (o, line) != 0)
-            goto clean_up;
-        }
-      else if (strncmp (line, "vt", 2) == 0)
-        {
-          if (process_new_texture_coords (o, line) != 0)
-            goto clean_up;
-        }
-      else
-        {
-          switch (line[0])
-            {
-            case 'v':
-              if (process_new_vertex_coordinates (o, line) != 0)
-                goto clean_up;
-              break;
-            case 'f':
-              if (process_new_face (o, line) != 0)
-                goto clean_up;
-              break;
-            case 'o':
-            case 'l':
-            default:
-              LOG_DEBUG_INFO ("Ignoring: %s", line);
-              break;
-            }
-        }
-    }
-  */
-
-  if (process_verts_txt_coords (o, fptr) != 0)
+  if ((process_verts_txt_coords (o, fptr) != 0)
+      || (process_faces (o, fptr) != 0))
     {
       fclose (fptr);
       return -1;
