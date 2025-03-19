@@ -5,6 +5,7 @@
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_matrix_double.h>
 #include <gsl/gsl_vector_double.h>
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -30,7 +31,6 @@ main (int argc, char **argv)
 
   float covar_mat[16] = { 0 };
   calc_covar_mat_from_obj_centroid (&obj, &centroid, covar_mat);
-  free_obj_file (&obj);
 
   print_covar_mat (covar_mat);
 
@@ -38,25 +38,35 @@ main (int argc, char **argv)
   float evec[4][4] = { { 0 } };
   if (calc_eigenvals_vecs (covar_mat, eval, evec) != 0)
     {
+      free_obj_file (&obj);
       return EXIT_FAILURE;
     }
 
-  puts ("Eigenvalues:");
+  float *largest_evec;
+  get_largest_evec_from_largest_eval (eval, evec, &largest_evec);
+
+  puts ("largest evec:");
   for (size_t i = 0; i < 4; i++)
     {
-      printf ("%2.4f ", eval[i]);
+      printf ("%f ", largest_evec[i]);
     }
   putchar ('\n');
 
-  puts ("Eigenvectors:");
-  for (size_t i = 0; i < 4; i++)
+  float center[4] = { centroid.x, centroid.y, centroid.z, centroid.w };
+  for (size_t i = 0; i < obj.num_verticies; i++)
     {
       for (size_t j = 0; j < 4; j++)
         {
-          printf ("%2.4f ", evec[i][j]);
+          printf ("%f ", largest_evec[j]);
         }
       putchar ('\n');
+
+      float tmp[4] = { obj.verticies_list[i].x, obj.verticies_list[i].y,
+                       obj.verticies_list[i].z, obj.verticies_list[i].w };
+      float dist = signed_dist (center, largest_evec, tmp);
+      printf ("dist: %f\n", dist);
     }
 
+  free_obj_file (&obj);
   return EXIT_SUCCESS;
 }

@@ -223,3 +223,35 @@ calc_eigenvals_vecs (float in[16], float eigenvals[4], float eigenvecs[4][4])
 
   return 0;
 }
+
+void
+get_largest_evec_from_largest_eval (float eval[static 4],
+                                    float evec[static 4][4],
+                                    float **largest_evec)
+{
+  size_t largest_idx = 0;
+  for (size_t i = 1; i < 4; i++)
+    {
+      if (eval[i] >= eval[largest_idx])
+        largest_idx = i;
+    }
+  (*largest_evec) = evec[largest_idx];
+}
+
+float
+signed_dist (float from[4], float from_norm[4], float to[4])
+{
+  float work[4] = { 0 };
+  for (size_t i = 0; i < 4; i++)
+    {
+      work[i] = from[i] - to[i];
+    }
+
+  float output = 0;
+  for (size_t i = 0; i < 4; i++)
+    {
+      output += from_norm[i] * work[i];
+    }
+
+  return output;
+}
