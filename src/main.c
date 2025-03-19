@@ -53,6 +53,7 @@ main (int argc, char **argv)
     }
   putchar ('\n');
 
+  /*
   for (size_t i = 0; i < obj.num_verticies; i++)
     {
       for (size_t j = 0; j < 4; j++)
@@ -66,6 +67,7 @@ main (int argc, char **argv)
       float dist = signed_dist (centroid, largest_evec, tmp);
       printf ("dist: %f\n", dist);
     }
+  */
 
   free_obj_file (&obj);
   return EXIT_SUCCESS;

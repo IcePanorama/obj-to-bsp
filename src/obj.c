@@ -255,30 +255,24 @@ process_new_face (ObjFile_t *o, const char *input)
         }
     }
 
-  struct PolygonalFace_s *face = &o->faces_list[o->num_faces];
-  ssize_t *v_sublist = face->vertices;
-  ssize_t *t_sublist = face->texture_coords;
-  ssize_t *n_sublist = face->vertex_normals;
-
-  LOG_DEBUG_INFO ("%s", input);
-
   char input_cpy[256];
   strncpy (input_cpy, input, 255);
-  input_cpy[strlen (input_cpy) - 1] = ' '; // Remove '\n'
+  input_cpy[strlen (input_cpy) - 1] = ' '; // remove '\n'
 
-  size_t num_elements = 0;
-  char *input_ptr = input_cpy + 2;
+  size_t cnt = 0;
+  char *input_ptr = input_cpy + 2; // skip "f "
   char *token = strchr (input_ptr, ' ');
+  struct PolygonalFace_s *curr = &o->faces_list[o->num_faces];
   while (token != NULL)
     {
       *token = '\0';
       token++;
 
-      if (num_elements >= 3)
+      if (cnt >= 3)
         {
           LOG_ERROR ("%ld-dimensional polygon faces unsupported. Please use "
                      "triangles.\n",
-                     num_elements);
+                     cnt);
           return -1;
         }
 
@@ -293,7 +287,7 @@ process_new_face (ObjFile_t *o, const char *input)
                   LOG_ERROR ("Invalid vertex index, %d.\n", atoi (idx) - 1);
                   return -1;
                 }
-              v_sublist[num_elements] = atoi (idx) - 1;
+              curr->verts[cnt] = &o->verticies_list[atoi (idx) - 1];
             }
           else if (num_parts == 1)
             {
@@ -303,7 +297,7 @@ process_new_face (ObjFile_t *o, const char *input)
                              atoi (idx) - 1);
                   return -1;
                 }
-              t_sublist[num_elements] = atoi (idx) - 1;
+              curr->tex_coords[cnt] = &o->texture_coords_list[atoi (idx) - 1];
             }
           else if (num_parts == 2)
             {
@@ -313,7 +307,7 @@ process_new_face (ObjFile_t *o, const char *input)
                              atoi (idx) - 1);
                   return -1;
                 }
-              n_sublist[num_elements] = atoi (idx) - 1;
+              curr->norms[cnt] = &o->vertex_normals_list[atoi (idx) - 1];
             }
 
           num_parts++;
@@ -324,9 +318,11 @@ process_new_face (ObjFile_t *o, const char *input)
         }
 
       input_ptr = token;
-      num_elements++;
+      cnt++;
       token = strchr (input_ptr, ' ');
     }
+
+  LOG_DEBUG_INFO ("%s", input);
 
   o->num_faces++;
   return 0;
