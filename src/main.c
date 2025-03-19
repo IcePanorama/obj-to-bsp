@@ -1,3 +1,8 @@
+/**
+ *  NOTE: This whole project is an experiment. Things might look a little rough
+ *  while I'm figuring everything out, but I'll come back and clean it all back
+ *  up at some later point.
+ */
 #include "log.h"
 #include "obj.h"
 #include "utils.h"
@@ -47,7 +52,7 @@ main (int argc, char **argv)
   float *largest_evec;
   get_largest_evec_from_largest_eval (eval, evec, &largest_evec);
 
-  puts ("largest evec:");
+  printf ("splitting plane normal: ");
   for (size_t i = 0; i < 4; i++)
     {
       printf ("%f ", largest_evec[i]);
@@ -161,25 +166,25 @@ main (int argc, char **argv)
         }
     }
 
-  /*
-  for (size_t i = 0; i < obj.num_verticies; i++)
-    {
-      for (size_t j = 0; j < 4; j++)
-        {
-          printf ("%f ", largest_evec[j]);
-        }
-      putchar ('\n');
-
-      float tmp[4] = { obj.verticies_list[i].x, obj.verticies_list[i].y,
-                       obj.verticies_list[i].z, obj.verticies_list[i].w };
-      float dist = signed_dist (centroid, largest_evec, tmp);
-      printf ("dist: %f\n", dist);
-    }
-  */
-
-  free (split);
   free (back);
   free (front);
+
+  /**
+   */
+  printf ("Faces to be split: \n");
+  for (size_t i = 0; i < split_len; i++)
+    {
+      printf ("Face %ld: \n", i);
+      struct PolygonalFace_s *curr = split[i];
+      for (size_t j = 0; j < 3; j++)
+        {
+          printf ("%f, %f, %f, %f\n", curr->verts[j]->x, curr->verts[j]->y,
+                  curr->verts[j]->z, curr->verts[j]->w);
+        }
+      puts ("-----------");
+    }
+
+  free (split);
   free_obj_file (&obj);
   return EXIT_SUCCESS;
 err:
