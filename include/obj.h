@@ -7,6 +7,7 @@
 
 typedef struct ObjFile_s
 {
+  // FIXME: this should just be a raw float array
   struct VertexCoord_s
   {
     float x;
@@ -17,6 +18,7 @@ typedef struct ObjFile_s
   size_t num_verticies;
   size_t max_num_verticies;
 
+  // FIXME: this should just be a raw float array
   struct TextureCoord_s
   {
     float u;
@@ -26,6 +28,7 @@ typedef struct ObjFile_s
   size_t num_texture_coords;
   size_t max_num_texture_coords;
 
+  // FIXME: this should just be a raw float array
   /** Might not be unit vectors. */
   struct VertexNormal_s
   {
@@ -36,6 +39,7 @@ typedef struct ObjFile_s
   size_t num_vertex_normals;
   size_t max_num_vertex_normals;
 
+  // FIXME: this should just be a raw float array
   /** Free form geometry statement. */
   struct ParameterSpaceVertex_s
   {
@@ -49,6 +53,7 @@ typedef struct ObjFile_s
   /**
    *  Stores index of its verticies, texture coordinates, & vertex normals.
    *  Only supporting triangles for easier centroid calculations.
+   *  FIXME: should store pointer instead
    */
   struct PolygonalFace_s
   {
