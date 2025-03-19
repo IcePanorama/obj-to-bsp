@@ -25,12 +25,13 @@ main (int argc, char **argv)
   if (status != 0)
     return EXIT_FAILURE;
 
-  struct VertexCoord_s centroid = calc_centroid_from_obj (&obj);
-  LOG_DEBUG_INFO ("Centroid: (%f, %f, %f, %f)\n", centroid.x, centroid.y,
-                  centroid.z, centroid.w);
+  float centroid[4] = { 0 };
+  calc_centroid_from_obj (centroid, &obj);
+  LOG_DEBUG_INFO ("Centroid: (%f, %f, %f, %f)\n", centroid[0], centroid[1],
+                  centroid[2], centroid[3]);
 
   float covar_mat[16] = { 0 };
-  calc_covar_mat_from_obj_centroid (&obj, &centroid, covar_mat);
+  calc_covar_mat_from_obj_centroid (&obj, centroid, covar_mat);
 
   print_covar_mat (covar_mat);
 
@@ -52,7 +53,6 @@ main (int argc, char **argv)
     }
   putchar ('\n');
 
-  float center[4] = { centroid.x, centroid.y, centroid.z, centroid.w };
   for (size_t i = 0; i < obj.num_verticies; i++)
     {
       for (size_t j = 0; j < 4; j++)
@@ -63,7 +63,7 @@ main (int argc, char **argv)
 
       float tmp[4] = { obj.verticies_list[i].x, obj.verticies_list[i].y,
                        obj.verticies_list[i].z, obj.verticies_list[i].w };
-      float dist = signed_dist (center, largest_evec, tmp);
+      float dist = signed_dist (centroid, largest_evec, tmp);
       printf ("dist: %f\n", dist);
     }
 

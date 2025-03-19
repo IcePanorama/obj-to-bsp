@@ -4,8 +4,8 @@
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_matrix_double.h>
 
-struct VertexCoord_s
-calc_centroid_from_obj (ObjFile_t o[static 1])
+void
+calc_centroid_from_obj (float centroid[static 4], ObjFile_t o[static 1])
 {
   float x_total = 0.0;
   float y_total = 0.0;
@@ -36,11 +36,14 @@ calc_centroid_from_obj (ObjFile_t o[static 1])
   z_total /= o->num_faces * 3;
   w_total /= o->num_faces * 3;
 
-  return (struct VertexCoord_s){ x_total, y_total, z_total, w_total };
+  centroid[0] = x_total;
+  centroid[1] = y_total;
+  centroid[2] = z_total;
+  centroid[3] = w_total;
 }
 
 static void
-calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
+calculate_var_from_obj_centroid (ObjFile_t *o, float c[static 4],
                                  float output[16])
 {
   float x_var = 0.0;
@@ -48,19 +51,24 @@ calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
   float z_var = 0.0;
   float w_var = 0.0;
 
+  const float cx = c[0];
+  const float cy = c[1];
+  const float cz = c[2];
+  const float cw = c[3];
+
   for (size_t i = 0; i < o->num_faces; i++)
     {
       struct PolygonalFace_s *curr = &o->faces_list[i];
       for (size_t j = 0; j < 3; j++)
         {
-          x_var += (o->verticies_list[curr->vertices[j]].x - c->x)
-                   * (o->verticies_list[curr->vertices[j]].x - c->x);
-          y_var += (o->verticies_list[curr->vertices[j]].y - c->y)
-                   * (o->verticies_list[curr->vertices[j]].y - c->y);
-          z_var += (o->verticies_list[curr->vertices[j]].z - c->z)
-                   * (o->verticies_list[curr->vertices[j]].z - c->z);
-          w_var += (o->verticies_list[curr->vertices[j]].w - c->w)
-                   * (o->verticies_list[curr->vertices[j]].w - c->w);
+          x_var += (o->verticies_list[curr->vertices[j]].x - cx)
+                   * (o->verticies_list[curr->vertices[j]].x - cx);
+          y_var += (o->verticies_list[curr->vertices[j]].y - cy)
+                   * (o->verticies_list[curr->vertices[j]].y - cy);
+          z_var += (o->verticies_list[curr->vertices[j]].z - cz)
+                   * (o->verticies_list[curr->vertices[j]].z - cz);
+          w_var += (o->verticies_list[curr->vertices[j]].w - cw)
+                   * (o->verticies_list[curr->vertices[j]].w - cw);
         }
     }
 
@@ -76,7 +84,7 @@ calculate_var_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
 }
 
 static void
-calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
+calc_covars_from_obj_centroid (ObjFile_t *o, float c[static 4],
                                float output[16])
 {
   float x_y_covar = 0.0;
@@ -86,23 +94,28 @@ calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
   float y_w_covar = 0.0;
   float z_w_covar = 0.0;
 
+  const float cx = c[0];
+  const float cy = c[1];
+  const float cz = c[2];
+  const float cw = c[3];
+
   for (size_t i = 0; i < o->num_faces; i++)
     {
       struct PolygonalFace_s *curr = &o->faces_list[i];
       for (size_t j = 0; j < 3; j++)
         {
-          x_y_covar += (o->verticies_list[curr->vertices[j]].x - c->x)
-                       * ((o->verticies_list[curr->vertices[j]].y - c->y));
-          x_z_covar += (o->verticies_list[curr->vertices[j]].x - c->x)
-                       * ((o->verticies_list[curr->vertices[j]].z - c->z));
-          x_w_covar += (o->verticies_list[curr->vertices[j]].x - c->x)
-                       * ((o->verticies_list[curr->vertices[j]].w - c->w));
-          y_z_covar += (o->verticies_list[curr->vertices[j]].y - c->y)
-                       * ((o->verticies_list[curr->vertices[j]].z - c->z));
-          y_w_covar += (o->verticies_list[curr->vertices[j]].y - c->y)
-                       * ((o->verticies_list[curr->vertices[j]].w - c->w));
-          z_w_covar += (o->verticies_list[curr->vertices[j]].z - c->z)
-                       * ((o->verticies_list[curr->vertices[j]].w - c->w));
+          x_y_covar += (o->verticies_list[curr->vertices[j]].x - cx)
+                       * ((o->verticies_list[curr->vertices[j]].y - cy));
+          x_z_covar += (o->verticies_list[curr->vertices[j]].x - cx)
+                       * ((o->verticies_list[curr->vertices[j]].z - cz));
+          x_w_covar += (o->verticies_list[curr->vertices[j]].x - cx)
+                       * ((o->verticies_list[curr->vertices[j]].w - cw));
+          y_z_covar += (o->verticies_list[curr->vertices[j]].y - cy)
+                       * ((o->verticies_list[curr->vertices[j]].z - cz));
+          y_w_covar += (o->verticies_list[curr->vertices[j]].y - cy)
+                       * ((o->verticies_list[curr->vertices[j]].w - cw));
+          z_w_covar += (o->verticies_list[curr->vertices[j]].z - cz)
+                       * ((o->verticies_list[curr->vertices[j]].w - cw));
         }
     }
 
@@ -124,8 +137,7 @@ calc_covars_from_obj_centroid (ObjFile_t *o, struct VertexCoord_s *c,
 }
 
 void
-calc_covar_mat_from_obj_centroid (ObjFile_t o[static 1],
-                                  struct VertexCoord_s c[static 1],
+calc_covar_mat_from_obj_centroid (ObjFile_t o[static 1], float c[static 4],
                                   float output[16])
 {
   calculate_var_from_obj_centroid (o, c, output);
