@@ -1,6 +1,7 @@
 #include "obj.h"
 #include "log.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -26,11 +27,11 @@ resize_list (void **list, size_t new_size)
 }
 
 static int
-process_new_vertex_normal (ObjFile_t *obj_file, const char *input)
+process_new_vertex_norm (ObjFile_t *o, const char *input)
 {
-  if (obj_file->max_num_vertex_normals == 0)
+  if (o->max_num_vertex_normals == 0)
     {
-      if (create_list ((void **)&obj_file->vertex_normals_list,
+      if (create_list ((void **)&o->vertex_normals_list,
                        sizeof (struct VertexNormal_s))
           != 0)
         {
@@ -38,19 +39,19 @@ process_new_vertex_normal (ObjFile_t *obj_file, const char *input)
           return -1;
         }
 
-      obj_file->max_num_vertex_normals = 1;
+      o->max_num_vertex_normals = 1;
     }
 
-  if (obj_file->num_vertex_normals == obj_file->max_num_vertex_normals)
+  if (o->num_vertex_normals == o->max_num_vertex_normals)
     {
-      obj_file->max_num_vertex_normals *= 2;
-      if (resize_list ((void **)&obj_file->vertex_normals_list,
+      o->max_num_vertex_normals *= 2;
+      if (resize_list ((void **)&o->vertex_normals_list,
                        sizeof (struct VertexNormal_s)
-                           * obj_file->max_num_vertex_normals)
+                           * o->max_num_vertex_normals)
           != 0)
         {
           LOG_ERROR ("Error resizing vertex normals list to size %ld.\n",
-                     obj_file->max_num_vertex_normals);
+                     o->max_num_vertex_normals);
           return -1;
         }
     }
@@ -58,13 +59,13 @@ process_new_vertex_normal (ObjFile_t *obj_file, const char *input)
   float x, y, z;
   if (sscanf (input, "vn %f %f %f", &x, &y, &z) == 3)
     {
-      obj_file->vertex_normals_list[obj_file->num_vertex_normals].x = x;
-      obj_file->vertex_normals_list[obj_file->num_vertex_normals].y = y;
-      obj_file->vertex_normals_list[obj_file->num_vertex_normals].z = z;
+      o->vertex_normals_list[o->num_vertex_normals].x = x;
+      o->vertex_normals_list[o->num_vertex_normals].y = y;
+      o->vertex_normals_list[o->num_vertex_normals].z = z;
 
       LOG_DEBUG_INFO ("vn %f %f %f\n", x, y, z);
 
-      obj_file->num_vertex_normals++;
+      o->num_vertex_normals++;
     }
   else
     {
@@ -76,11 +77,11 @@ process_new_vertex_normal (ObjFile_t *obj_file, const char *input)
 }
 
 static int
-process_new_parameter_space_vertex (ObjFile_t *obj_file, const char *input)
+process_new_parameter_space_vertex (ObjFile_t *o, const char *input)
 {
-  if (obj_file->max_num_parameter_space_verticies == 0)
+  if (o->max_num_parameter_space_verticies == 0)
     {
-      if (create_list ((void **)&obj_file->parameter_space_verticies_list,
+      if (create_list ((void **)&o->parameter_space_verticies_list,
                        sizeof (struct ParameterSpaceVertex_s))
           != 0)
         {
@@ -88,21 +89,20 @@ process_new_parameter_space_vertex (ObjFile_t *obj_file, const char *input)
           return -1;
         }
 
-      obj_file->max_num_parameter_space_verticies = 1;
+      o->max_num_parameter_space_verticies = 1;
     }
 
-  if (obj_file->num_parameter_space_verticies
-      == obj_file->max_num_parameter_space_verticies)
+  if (o->num_parameter_space_verticies == o->max_num_parameter_space_verticies)
     {
-      obj_file->max_num_parameter_space_verticies *= 2;
-      if (resize_list ((void **)&obj_file->parameter_space_verticies_list,
+      o->max_num_parameter_space_verticies *= 2;
+      if (resize_list ((void **)&o->parameter_space_verticies_list,
                        sizeof (struct ParameterSpaceVertex_s)
-                           * obj_file->max_num_parameter_space_verticies)
+                           * o->max_num_parameter_space_verticies)
           != 0)
         {
           LOG_ERROR (
               "Error resizing parameter space verticies list to size %ld.\n",
-              obj_file->max_num_parameter_space_verticies);
+              o->max_num_parameter_space_verticies);
           return -1;
         }
     }
@@ -111,9 +111,9 @@ process_new_parameter_space_vertex (ObjFile_t *obj_file, const char *input)
   if (sscanf (input, "vp %f %f %f", &u, &v, &w) >= 1)
     {
       /* clang-format off */
-      obj_file->parameter_space_verticies_list[obj_file ->num_parameter_space_verticies].u = u;
-      obj_file->parameter_space_verticies_list[obj_file ->num_parameter_space_verticies].v = v;
-      obj_file->parameter_space_verticies_list[obj_file ->num_parameter_space_verticies].w = w;
+      o->parameter_space_verticies_list[o ->num_parameter_space_verticies].u = u;
+      o->parameter_space_verticies_list[o ->num_parameter_space_verticies].v = v;
+      o->parameter_space_verticies_list[o ->num_parameter_space_verticies].w = w;
       /* clang-format on */
 
       LOG_DEBUG_INFO ("vp %f %f %f\n", u, v, w);
@@ -128,11 +128,11 @@ process_new_parameter_space_vertex (ObjFile_t *obj_file, const char *input)
 }
 
 static int
-process_new_texture_coords (ObjFile_t *obj_file, const char *input)
+process_new_texture_coords (ObjFile_t *o, const char *input)
 {
-  if (obj_file->max_num_texture_coords == 0)
+  if (o->max_num_texture_coords == 0)
     {
-      if (create_list ((void **)&obj_file->texture_coords_list,
+      if (create_list ((void **)&o->texture_coords_list,
                        sizeof (struct TextureCoord_s))
           != 0)
         {
@@ -140,19 +140,19 @@ process_new_texture_coords (ObjFile_t *obj_file, const char *input)
           return -1;
         }
 
-      obj_file->max_num_texture_coords = 1;
+      o->max_num_texture_coords = 1;
     }
 
-  if (obj_file->num_texture_coords == obj_file->max_num_texture_coords)
+  if (o->num_texture_coords == o->max_num_texture_coords)
     {
-      obj_file->max_num_texture_coords *= 2;
-      if (resize_list ((void **)&obj_file->texture_coords_list,
+      o->max_num_texture_coords *= 2;
+      if (resize_list ((void **)&o->texture_coords_list,
                        sizeof (struct TextureCoord_s)
-                           * obj_file->max_num_texture_coords)
+                           * o->max_num_texture_coords)
           != 0)
         {
           LOG_ERROR ("Error resizing texture coordinates list to size %ld.\n",
-                     obj_file->max_num_texture_coords);
+                     o->max_num_texture_coords);
           return -1;
         }
     }
@@ -160,9 +160,9 @@ process_new_texture_coords (ObjFile_t *obj_file, const char *input)
   float u, v = 0.0, w = 0.0;
   if (sscanf (input, "vt %f %f %f", &u, &v, &w) >= 1)
     {
-      obj_file->texture_coords_list[obj_file->num_texture_coords].u = u;
-      obj_file->texture_coords_list[obj_file->num_texture_coords].v = v;
-      obj_file->texture_coords_list[obj_file->num_texture_coords].w = w;
+      o->texture_coords_list[o->num_texture_coords].u = u;
+      o->texture_coords_list[o->num_texture_coords].v = v;
+      o->texture_coords_list[o->num_texture_coords].w = w;
 
       LOG_DEBUG_INFO ("vt %f %f %f\n", u, v, w);
     }
@@ -172,16 +172,16 @@ process_new_texture_coords (ObjFile_t *obj_file, const char *input)
       return -1;
     }
 
-  obj_file->num_texture_coords++;
+  o->num_texture_coords++;
   return 0;
 }
 
 static int
-process_new_vertex_coordinates (ObjFile_t *obj_file, const char *line)
+process_new_vertex_coordinates (ObjFile_t *o, const char *line)
 {
-  if (obj_file->max_num_verticies == 0)
+  if (o->max_num_verticies == 0)
     {
-      if (create_list ((void **)&obj_file->verticies_list,
+      if (create_list ((void **)&o->verticies_list,
                        sizeof (struct VertexCoord_s))
           != 0)
         {
@@ -189,19 +189,18 @@ process_new_vertex_coordinates (ObjFile_t *obj_file, const char *line)
           return -1;
         }
 
-      obj_file->max_num_verticies = 1;
+      o->max_num_verticies = 1;
     }
 
-  if (obj_file->num_verticies == obj_file->max_num_verticies)
+  if (o->num_verticies == o->max_num_verticies)
     {
-      obj_file->max_num_verticies *= 2;
-      if (resize_list ((void **)&obj_file->verticies_list,
-                       sizeof (struct VertexCoord_s)
-                           * obj_file->max_num_verticies)
+      o->max_num_verticies *= 2;
+      if (resize_list ((void **)&o->verticies_list,
+                       sizeof (struct VertexCoord_s) * o->max_num_verticies)
           != 0)
         {
           LOG_ERROR ("Error resizing vertices list to size %ld.\n",
-                     obj_file->max_num_verticies);
+                     o->max_num_verticies);
           return -1;
         }
     }
@@ -209,14 +208,14 @@ process_new_vertex_coordinates (ObjFile_t *obj_file, const char *line)
   float x, y, z, w = 1.0;
   if (sscanf (line, "v %f %f %f %f", &x, &y, &z, &w) >= 3)
     {
-      obj_file->verticies_list[obj_file->num_verticies].x = x;
-      obj_file->verticies_list[obj_file->num_verticies].y = y;
-      obj_file->verticies_list[obj_file->num_verticies].z = z;
-      obj_file->verticies_list[obj_file->num_verticies].w = w;
+      o->verticies_list[o->num_verticies].x = x;
+      o->verticies_list[o->num_verticies].y = y;
+      o->verticies_list[o->num_verticies].z = z;
+      o->verticies_list[o->num_verticies].w = w;
 
       LOG_DEBUG_INFO ("v %f %f %f %f\n", x, y, z, w);
 
-      obj_file->num_verticies++;
+      o->num_verticies++;
     }
   else
     {
@@ -227,12 +226,13 @@ process_new_vertex_coordinates (ObjFile_t *obj_file, const char *line)
   return 0;
 }
 
+/*
 static int
-process_new_face (ObjFile_t *obj_file, const char *input)
+process_new_face (ObjFile_t *o, const char *input)
 {
-  if (obj_file->max_num_faces == 0)
+  if (o->max_num_faces == 0)
     {
-      if (create_list ((void **)&obj_file->faces_list,
+      if (create_list ((void **)&o->faces_list,
                        sizeof (struct PolygonalFace_s))
           != 0)
         {
@@ -240,24 +240,23 @@ process_new_face (ObjFile_t *obj_file, const char *input)
           return -1;
         }
 
-      obj_file->max_num_faces = 1;
+      o->max_num_faces = 1;
     }
 
-  if (obj_file->num_faces == obj_file->max_num_faces)
+  if (o->num_faces == o->max_num_faces)
     {
-      obj_file->max_num_faces *= 2;
-      if (resize_list ((void **)&obj_file->faces_list,
-                       sizeof (struct PolygonalFace_s)
-                           * obj_file->max_num_faces)
+      o->max_num_faces *= 2;
+      if (resize_list ((void **)&o->faces_list,
+                       sizeof (struct PolygonalFace_s) * o->max_num_faces)
           != 0)
         {
           LOG_ERROR ("Error resizing faces list to size %ld.\n",
-                     obj_file->max_num_faces);
+                     o->max_num_faces);
           return -1;
         }
     }
 
-  struct PolygonalFace_s *face = &obj_file->faces_list[obj_file->num_faces];
+  struct PolygonalFace_s *face = &o->faces_list[o->num_faces];
   ssize_t *v_sublist = face->vertices;
   ssize_t *t_sublist = face->texture_coords;
   ssize_t *n_sublist = face->vertex_normals;
@@ -290,7 +289,7 @@ process_new_face (ObjFile_t *obj_file, const char *input)
         {
           if (num_parts == 0)
             {
-              if ((size_t)(atoi (idx) - 1) >= obj_file->num_verticies)
+              if ((size_t)(atoi (idx) - 1) >= o->num_verticies)
                 {
                   LOG_ERROR ("Invalid vertex index, %d.\n", atoi (idx) - 1);
                   return -1;
@@ -299,7 +298,7 @@ process_new_face (ObjFile_t *obj_file, const char *input)
             }
           else if (num_parts == 1)
             {
-              if ((size_t)(atoi (idx) - 1) >= obj_file->num_texture_coords)
+              if ((size_t)(atoi (idx) - 1) >= o->num_texture_coords)
                 {
                   LOG_ERROR ("Invalid texture coordinate index, %d.\n",
                              atoi (idx) - 1);
@@ -309,7 +308,7 @@ process_new_face (ObjFile_t *obj_file, const char *input)
             }
           else if (num_parts == 2)
             {
-              if ((size_t)(atoi (idx) - 1) >= obj_file->num_vertex_normals)
+              if ((size_t)(atoi (idx) - 1) >= o->num_vertex_normals)
                 {
                   LOG_ERROR ("Invalid vertex normal index, %d.\n",
                              atoi (idx) - 1);
@@ -319,7 +318,7 @@ process_new_face (ObjFile_t *obj_file, const char *input)
             }
 
           num_parts++;
-          /** If optional texture coords not provided, skip. */
+          ** If optional texture coords not provided, skip. *
           if ((idx + strlen (idx) + 1)[0] == '/')
             num_parts++;
           idx = strtok (NULL, "/");
@@ -330,21 +329,19 @@ process_new_face (ObjFile_t *obj_file, const char *input)
       token = strchr (input_ptr, ' ');
     }
 
-  obj_file->num_faces++;
+  o->num_faces++;
   return 0;
 }
+*/
 
 static int
-read_obj_from_file (ObjFile_t obj_file[static 1], const char path[static 1])
+process_verts_txt_coords (ObjFile_t o[static 1], FILE *fptr)
 {
-  FILE *fptr = fopen (path, "r");
-  if (fptr == NULL)
+  if (fseek (fptr, 0x0, SEEK_SET) != 0)
     {
-      LOG_ERROR ("Unable to open file, %s.\n", path);
+      LOG_ERROR_MSG ("Failed to seek to beginning of file.\n");
       return -1;
     }
-
-  memset (obj_file, 0, sizeof (ObjFile_t));
 
   char line[256];
   while (fgets (line, sizeof (line), fptr) != NULL)
@@ -353,17 +350,61 @@ read_obj_from_file (ObjFile_t obj_file[static 1], const char path[static 1])
         continue;
       else if (strncmp (line, "vn", 2) == 0)
         {
-          if (process_new_vertex_normal (obj_file, line) != 0)
+          if (process_new_vertex_norm (o, line) != 0)
+            return -1;
+        }
+      else if (strncmp (line, "vp", 2) == 0)
+        {
+          if (process_new_parameter_space_vertex (o, line) != 0)
+            return -1;
+        }
+      else if (strncmp (line, "vt", 2) == 0)
+        {
+          if (process_new_texture_coords (o, line) != 0)
+            return -1;
+        }
+      else if (line[0] == 'v')
+        {
+          if (process_new_vertex_coordinates (o, line) != 0)
+            return -1;
+        }
+    }
+
+  return 0;
+}
+
+int
+create_obj_file_from_file (ObjFile_t o[static 1],
+                           const char file_path[static 1])
+{
+  FILE *fptr = fopen (file_path, "r");
+  if (fptr == NULL)
+    {
+      LOG_ERROR ("Unable to open file, %s.\n", file_path);
+      return -1;
+    }
+
+  memset (o, 0, sizeof (ObjFile_t));
+
+  /*
+  char line[256];
+  while (fgets (line, sizeof (line), fptr) != NULL)
+    {
+      if (line[0] == '#') // ignore comments
+        continue;
+      else if (strncmp (line, "vn", 2) == 0)
+        {
+          if (process_new_vertex_norm (o, line) != 0)
             goto clean_up;
         }
       else if (strncmp (line, "vp", 2) == 0)
         {
-          if (process_new_parameter_space_vertex (obj_file, line) != 0)
+          if (process_new_parameter_space_vertex (o, line) != 0)
             goto clean_up;
         }
       else if (strncmp (line, "vt", 2) == 0)
         {
-          if (process_new_texture_coords (obj_file, line) != 0)
+          if (process_new_texture_coords (o, line) != 0)
             goto clean_up;
         }
       else
@@ -371,11 +412,11 @@ read_obj_from_file (ObjFile_t obj_file[static 1], const char path[static 1])
           switch (line[0])
             {
             case 'v':
-              if (process_new_vertex_coordinates (obj_file, line) != 0)
+              if (process_new_vertex_coordinates (o, line) != 0)
                 goto clean_up;
               break;
             case 'f':
-              if (process_new_face (obj_file, line) != 0)
+              if (process_new_face (o, line) != 0)
                 goto clean_up;
               break;
             case 'o':
@@ -386,19 +427,16 @@ read_obj_from_file (ObjFile_t obj_file[static 1], const char path[static 1])
             }
         }
     }
+  */
+
+  if (process_verts_txt_coords (o, fptr) != 0)
+    {
+      fclose (fptr);
+      return -1;
+    }
 
   fclose (fptr);
   return 0;
-clean_up:
-  fclose (fptr);
-  return -1;
-}
-
-int
-create_obj_file_from_file (ObjFile_t o[static 1],
-                           const char file_path[static 1])
-{
-  return read_obj_from_file (o, file_path);
 }
 
 void
