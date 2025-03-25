@@ -1,7 +1,6 @@
 #include "dynamic_arr.h"
 #include "log.h"
 
-#include <stdlib.h>
 #include <string.h>
 
 struct _DynamicArray_s
@@ -12,7 +11,6 @@ struct _DynamicArray_s
   void *data;
 };
 
-// TODO: create resize function.
 DynamicArray_t *
 dyna_create (size_t el_size)
 {
@@ -39,17 +37,9 @@ dyna_free (DynamicArray_t *arr)
 }
 
 static int
-resize (DynamicArray_t *arr)
+double_size (DynamicArray_t *arr)
 {
-  arr->capacity *= 2;
-  void *tmp = realloc (arr->data, arr->capacity * arr->el_size);
-  if (tmp == NULL)
-    {
-      return -1;
-    }
-
-  arr->data = tmp;
-  return 0;
+  return dyna_resize (arr, arr->capacity * 2);
 }
 
 int
@@ -62,7 +52,7 @@ dyna_append (DynamicArray_t *arr, void *el)
 
   if (arr->size == arr->capacity)
     {
-      if (resize (arr) != 0)
+      if (double_size (arr) != 0)
         {
           LOG_ERROR ("Realloc failure for dynamic array of size, %ld.",
                      arr->capacity);
@@ -73,5 +63,22 @@ dyna_append (DynamicArray_t *arr, void *el)
   void *ptr = (void *)((uint8_t *)(arr->data) + (arr->el_size * arr->size));
   memcpy (ptr, el, arr->el_size);
   arr->size++;
+  return 0;
+}
+
+int
+dyna_resize (DynamicArray_t *arr, size_t new_capacity)
+{
+  if ((arr == NULL) || (new_capacity < arr->capacity))
+    return -1;
+
+  arr->capacity = new_capacity;
+  void *tmp = realloc (arr->data, arr->capacity * arr->el_size);
+  if (tmp == NULL)
+    {
+      return -1;
+    }
+
+  arr->data = tmp;
   return 0;
 }
