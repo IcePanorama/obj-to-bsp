@@ -25,6 +25,7 @@ add_compile_options(
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
+    "${SRC_DIR}/dynamic_arr.c"
     "${SRC_DIR}/utils.c"
     "${SRC_DIR}/main.c"
     "${SRC_DIR}/obj.c"
@@ -32,6 +33,7 @@ set(SRC_FILES
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
+    "${INCL_DIR}/dynamic_arr.h"
     "${INCL_DIR}/utils.h"
     "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj.h"

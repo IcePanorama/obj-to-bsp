@@ -3,6 +3,7 @@
  *  while I'm figuring everything out, but I'll come back and clean it all back
  *  up at some later point.
  */
+#include "dynamic_arr.h"
 #include "log.h"
 #include "obj.h"
 #include "utils.h"
@@ -59,26 +60,20 @@ main (int argc, char **argv)
     }
   putchar ('\n');
 
+  // FIXME: should be checking if front is null here.
+  DynamicArray_t *front = dyna_create (1);
+
   /**
    *  Need to create a dynamic array type and then stuff the remnants into a
    *  bsp interface thingy.
    */
-  size_t front_len = 0;
-  size_t front_max = 1;
-  struct PolygonalFace_s **front
-      = calloc (1, sizeof (struct PolygonalFace_s *));
-  if (front == NULL)
-    {
-      free_obj_file (&obj);
-      return EXIT_FAILURE;
-    }
   size_t back_len = 0;
   size_t back_max = 1;
   struct PolygonalFace_s **back
       = calloc (1, sizeof (struct PolygonalFace_s *));
   if (back == NULL)
     {
-      free (front);
+      dyna_free (front);
       free_obj_file (&obj);
       return EXIT_FAILURE;
     }
@@ -89,7 +84,7 @@ main (int argc, char **argv)
   if (split == NULL)
     {
       free (back);
-      free (front);
+      dyna_free (front);
       free_obj_file (&obj);
       return EXIT_FAILURE;
     }
@@ -128,22 +123,10 @@ main (int argc, char **argv)
         }
       else if (cnt == 3)
         {
-          if (front_len == front_max)
+          if (dyna_append (front, curr) != 0)
             {
-              front_max *= 2;
-              struct PolygonalFace_s **tmp = realloc (
-                  front, front_max * sizeof (struct PolygonalFace_s *));
-              if (tmp == NULL)
-                {
-                  LOG_ERROR ("Failed to resize front list to size %ld.\n",
-                             front_max);
-                  goto err;
-                }
-
-              front = tmp;
+              break;
             }
-          front[front_len] = curr;
-          front_len++;
         }
       else
         {
@@ -167,10 +150,8 @@ main (int argc, char **argv)
     }
 
   free (back);
-  free (front);
+  dyna_free (front);
 
-  /**
-   */
   printf ("Faces to be split: \n");
   for (size_t i = 0; i < split_len; i++)
     {
