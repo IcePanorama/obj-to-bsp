@@ -60,35 +60,15 @@ main (int argc, char **argv)
     }
   putchar ('\n');
 
-  // FIXME: should be checking if front is null here.
-  DynamicArray_t *front = dyna_create (1);
+  // FIXME: should be checking if front/back is null here.
+  DynamicArray_t *front = dyna_create (sizeof (struct PolygonalFace_s));
+  DynamicArray_t *back = dyna_create (sizeof (struct PolygonalFace_s));
+  DynamicArray_t *split = dyna_create (sizeof (struct PolygonalFace_s));
 
   /**
    *  Need to create a dynamic array type and then stuff the remnants into a
    *  bsp interface thingy.
    */
-  size_t back_len = 0;
-  size_t back_max = 1;
-  struct PolygonalFace_s **back
-      = calloc (1, sizeof (struct PolygonalFace_s *));
-  if (back == NULL)
-    {
-      dyna_free (front);
-      free_obj_file (&obj);
-      return EXIT_FAILURE;
-    }
-  size_t split_len = 0;
-  size_t split_max = 1;
-  struct PolygonalFace_s **split
-      = calloc (1, sizeof (struct PolygonalFace_s *));
-  if (split == NULL)
-    {
-      free (back);
-      dyna_free (front);
-      free_obj_file (&obj);
-      return EXIT_FAILURE;
-    }
-
   for (size_t i = 0; i < obj.num_faces; i++)
     {
       struct PolygonalFace_s *curr = &obj.faces_list[i];
@@ -102,61 +82,32 @@ main (int argc, char **argv)
           cnt += dist > 0 ? 1 : -1;
         }
 
-      if (cnt == -3)
+      if (cnt == -3) // behind splitting plane
         {
-          if (back_len == back_max)
-            {
-              back_max *= 2;
-              struct PolygonalFace_s **tmp = realloc (
-                  back, back_max * sizeof (struct PolygonalFace_s *));
-              if (tmp == NULL)
-                {
-                  LOG_ERROR ("Failed to resize back list to size %ld.\n",
-                             back_max);
-                  goto err;
-                }
-
-              back = tmp;
-            }
-          back[back_len] = curr;
-          back_len++;
+          if (dyna_append (back, curr) != 0)
+            break;
         }
-      else if (cnt == 3)
+      else if (cnt == 3) // in front of splitting plane
         {
           if (dyna_append (front, curr) != 0)
-            {
-              break;
-            }
+            break;
         }
-      else
+      else // needs to be split!
         {
-          if (split_len == split_max)
-            {
-              split_max *= 2;
-              struct PolygonalFace_s **tmp = realloc (
-                  split, split_max * sizeof (struct PolygonalFace_s *));
-              if (tmp == NULL)
-                {
-                  LOG_ERROR ("Failed to resize split list to size %ld.\n",
-                             split_max);
-                  goto err;
-                }
-
-              split = tmp;
-            }
-          split[split_len] = curr;
-          split_len++;
+          if (dyna_append (split, curr) != 0)
+            break;
         }
     }
 
-  free (back);
-  dyna_free (front);
-
   printf ("Faces to be split: \n");
-  for (size_t i = 0; i < split_len; i++)
+  for (size_t i = 0; i < dyna_get_size (split); i++)
     {
       printf ("Face %ld: \n", i);
-      struct PolygonalFace_s *curr = split[i];
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (split, i);
+      if (curr == NULL)
+        break;
+
       for (size_t j = 0; j < 3; j++)
         {
           printf ("%f, %f, %f, %f\n", curr->verts[j]->x, curr->verts[j]->y,
@@ -165,13 +116,9 @@ main (int argc, char **argv)
       puts ("-----------");
     }
 
-  free (split);
+  dyna_free (back);
+  dyna_free (front);
+  dyna_free (split);
   free_obj_file (&obj);
   return EXIT_SUCCESS;
-err:
-  free (split);
-  free (back);
-  free (front);
-  free_obj_file (&obj);
-  return EXIT_FAILURE;
 }

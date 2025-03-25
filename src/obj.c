@@ -22,6 +22,8 @@ resize_list (void **list, size_t new_size)
   if (tmp == NULL)
     return -1;
 
+  memset ((char *)tmp + (new_size / 2), 0, (new_size / 2));
+
   *list = tmp;
   return 0;
 }
@@ -263,6 +265,7 @@ process_new_face (ObjFile_t *o, const char *input)
   char *input_ptr = input_cpy + 2; // skip "f "
   char *token = strchr (input_ptr, ' ');
   struct PolygonalFace_s *curr = &o->faces_list[o->num_faces];
+
   while (token != NULL)
     {
       *token = '\0';

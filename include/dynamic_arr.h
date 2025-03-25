@@ -12,5 +12,7 @@ void dyna_free (DynamicArray_t *arr);
 int dyna_resize (DynamicArray_t *arr, size_t new_capacity);
 /** Returns:  zero on success, non-zero on failure. */
 int dyna_append (DynamicArray_t *arr, void *el);
+size_t dyna_get_size (DynamicArray_t *arr);
+void *dyna_at (DynamicArray_t *arr, size_t idx);
 
 #endif /* _DYNAMIC_ARRAY_H_ */
