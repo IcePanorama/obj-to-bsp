@@ -39,6 +39,7 @@ set(INCL_FILES
     "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj/file.h"
     "${INCL_DIR}/bsp_tree/tree.h"
+    "${INCL_DIR}/bsp_tree/node.h"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
