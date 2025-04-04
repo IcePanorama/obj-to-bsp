@@ -1,7 +1,7 @@
 #ifndef _COVARIANCE_MATRIX_H_
 #define _COVARIANCE_MATRIX_H_
 
-// #include "obj/file.h"
+#include <stdbool.h>
 
 /** Prints the given covariance matrix, `m`, via `LOG_DEBUG_INFO`.*/
 void print_covar_mat (float m[16]);
@@ -24,5 +24,10 @@ void get_largest_evec_from_largest_eval (float eval[static 4],
                                          float **largest_evec);
 
 float signed_dist (float from[4], float from_norm[4], float to[4]);
+
+float u_calc_dot_product (float a[static 4], float b[static 4]);
+float u_calc_line_plane_intersection (float v1[static 4], float v2[static 4],
+                                      float plane_cen[static 4],
+                                      float plane_norm[static 4]);
 
 #endif /* _COVARIANCE_MATRIX_H_ */

@@ -119,11 +119,34 @@ signed_dist (float from[4], float from_norm[4], float to[4])
       work[i] = from[i] - to[i];
     }
 
-  float output = 0;
+  return u_calc_dot_product (from_norm, work);
+}
+
+float
+u_calc_dot_product (float a[static 4], float b[static 4])
+{
+  float res = 0.0;
   for (size_t i = 0; i < 4; i++)
     {
-      output += from_norm[i] * work[i];
+      res += a[i] * b[i];
     }
 
-  return output;
+  return res;
+}
+
+float
+u_calc_line_plane_intersection (float v1[static 4], float v2[static 4],
+                                float plane_cen[static 4],
+                                float plane_norm[static 4])
+{
+  float neg_norm[]
+      = { -plane_norm[0], -plane_norm[1], -plane_norm[2], -plane_norm[3] };
+  float dist2cen[] = { v1[0] - plane_cen[0], v1[1] - plane_cen[1],
+                       v1[2] - plane_cen[2], v1[3] - plane_cen[3] };
+  float distBetPoints[]
+      = { v2[0] - v1[0], v2[1] - v1[1], v2[2] - v1[2], v2[3] - v1[3] };
+
+  float num = u_calc_dot_product (neg_norm, dist2cen);
+  float denom = u_calc_dot_product (plane_norm, distBetPoints);
+  return num / denom;
 }

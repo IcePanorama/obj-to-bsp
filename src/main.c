@@ -3,15 +3,15 @@
  *  while I'm figuring everything out, but I'll come back and clean it all back
  *  up at some later point.
  */
-#include "dynamic_arr.h"
+#include "bsp_tree/tree.h"
 #include "log.h"
-#include "obj/face.h"
 #include "obj/file.h"
-#include "obj/vertex_coord.h"
 #include "utils.h"
 
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int
 main (int argc, char **argv)
@@ -59,80 +59,30 @@ main (int argc, char **argv)
   float *largest_evec;
   get_largest_evec_from_largest_eval (eval, evec, &largest_evec);
 
-  printf ("splitting plane normal: ");
+  char tmp[256] = { 0 };
   for (size_t i = 0; i < 4; i++)
     {
-      printf ("%f ", largest_evec[i]);
+      char line[32] = { 0 };
+      sprintf (line, "%f ", largest_evec[i]);
+      strcat (tmp, line);
     }
-  putchar ('\n');
+  LOG_DEBUG_INFO ("Splitting plane normal: %s\n", tmp);
 
-  DynamicArray_t *front = dyna_create (sizeof (struct PolygonalFace_s));
-  DynamicArray_t *back = dyna_create (sizeof (struct PolygonalFace_s));
-  DynamicArray_t *split = dyna_create (sizeof (struct PolygonalFace_s));
-  if ((front == NULL) || (back == NULL) || (split == NULL))
+  BSPTree_t *bsp = bsp_alloc ();
+  if (bsp == NULL)
     goto err_exit;
 
-  DynamicArray_t *faces_list = obj_get_faces_list (obj);
-  if (faces_list == NULL)
-    goto err_exit;
-
-  for (size_t i = 0; i < dyna_get_size (faces_list); i++)
+  if (bsp_process_obj (bsp, obj, centroid, largest_evec) != 0)
     {
-      struct PolygonalFace_s *curr
-          = (struct PolygonalFace_s *)dyna_at (faces_list, i);
-      int8_t cnt = 0;
-      for (size_t j = 0; j < 3; j++)
-        {
-          float tmp[4] = { curr->verts[j]->x, curr->verts[j]->y,
-                           curr->verts[j]->z, curr->verts[j]->w };
-          float dist = signed_dist (centroid, largest_evec, tmp);
-
-          cnt += dist > 0 ? 1 : -1;
-        }
-
-      if (cnt == -3) // behind splitting plane
-        {
-          if (dyna_append (back, curr) != 0)
-            break;
-        }
-      else if (cnt == 3) // in front of splitting plane
-        {
-          if (dyna_append (front, curr) != 0)
-            break;
-        }
-      else // needs to be split!
-        {
-          if (dyna_append (split, curr) != 0)
-            break;
-        }
+      bsp_free (bsp);
+      goto err_exit;
     }
 
-  printf ("Faces to be split: \n");
-  for (size_t i = 0; i < dyna_get_size (split); i++)
-    {
-      printf ("Face %ld: \n", i);
-      struct PolygonalFace_s *curr
-          = (struct PolygonalFace_s *)dyna_at (split, i);
-      if (curr == NULL)
-        break;
-
-      for (size_t j = 0; j < 3; j++)
-        {
-          printf ("%f, %f, %f, %f\n", curr->verts[j]->x, curr->verts[j]->y,
-                  curr->verts[j]->z, curr->verts[j]->w);
-        }
-      puts ("-----------");
-    }
-
-  dyna_free (back);
-  dyna_free (front);
-  dyna_free (split);
+  bsp_free (bsp);
   obj_free (obj);
+
   return EXIT_SUCCESS;
 err_exit:
-  dyna_free (back);
-  dyna_free (front);
-  dyna_free (split);
   obj_free (obj);
   return EXIT_FAILURE;
 }

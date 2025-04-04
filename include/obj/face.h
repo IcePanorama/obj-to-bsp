@@ -1,6 +1,10 @@
 #ifndef _WAVEFRONT_OBJ_POLYGONAL_FACE_H_
 #define _WAVEFRONT_OBJ_POLYGONAL_FACE_H_
 
+/**
+ *  "Vertices are stored in counter-clockwise order by default."
+ *  See: https://en.wikipedia.org/wiki/Wavefront_.obj_file
+ */
 struct PolygonalFace_s
 {
   struct OBJVertexCoord_s *verts[3];
