@@ -28,6 +28,16 @@ main (int argc, char **argv)
   if (obj == NULL)
     return EXIT_FAILURE;
 
+  /**
+   *  NOTE: The calculations required to traverse a tree split in this manner
+   *  may be too expensive for platforms with constrained hardware. May be
+   *  worth exploring other splitting methods in the future.
+   *  A cheaper splitting plan
+   *  may be to treat the normal of the splitting plane as some fixed value. We
+   *  could build a BSP tree for each x-, y-, and z-axis aligned normal (as
+   *  well as their negative counterparts), and then select the tree which is
+   *  the shortest as our output.
+   */
   float centroid[4] = { 0 };
   obj_calc_centroid (obj, centroid);
   LOG_DEBUG_INFO ("Centroid: (%f, %f, %f, %f)\n", centroid[0], centroid[1],
@@ -56,16 +66,16 @@ main (int argc, char **argv)
     }
   putchar ('\n');
 
-  // FIXME: should be checking if front/back is null here.
   DynamicArray_t *front = dyna_create (sizeof (struct PolygonalFace_s));
   DynamicArray_t *back = dyna_create (sizeof (struct PolygonalFace_s));
   DynamicArray_t *split = dyna_create (sizeof (struct PolygonalFace_s));
+  if ((front == NULL) || (back == NULL) || (split == NULL))
+    goto err_exit;
 
-  /**
-   *  Need to create a dynamic array type and then stuff the remnants into a
-   *  bsp interface thingy.
-   */
   DynamicArray_t *faces_list = obj_get_faces_list (obj);
+  if (faces_list == NULL)
+    goto err_exit;
+
   for (size_t i = 0; i < dyna_get_size (faces_list); i++)
     {
       struct PolygonalFace_s *curr
@@ -119,4 +129,10 @@ main (int argc, char **argv)
   dyna_free (split);
   obj_free (obj);
   return EXIT_SUCCESS;
+err_exit:
+  dyna_free (back);
+  dyna_free (front);
+  dyna_free (split);
+  obj_free (obj);
+  return EXIT_FAILURE;
 }

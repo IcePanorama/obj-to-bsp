@@ -29,6 +29,7 @@ set(SRC_FILES
     "${SRC_DIR}/utils.c"
     "${SRC_DIR}/main.c"
     "${SRC_DIR}/obj/file.c"
+    "${SRC_DIR}/bsp_tree/tree.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
@@ -37,6 +38,7 @@ set(INCL_FILES
     "${INCL_DIR}/utils.h"
     "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj/file.h"
+    "${INCL_DIR}/bsp_tree/tree.h"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
