@@ -9,6 +9,7 @@
  *  following settings:
  *  + Forward Axis: Y
  *  + Up Axis: Z
+ *  FIXME: should this be in the obj file?
  */
 void calc_centroid_from_obj (float centroid[static 4], ObjFile_t o[static 1]);
 
@@ -33,6 +34,7 @@ void calc_centroid_from_obj (float centroid[static 4], ObjFile_t o[static 1]);
  *  where n = `o->num_faces * 3` (as we're dealing with triangles).
  *
  *  See: https://www.geeksforgeeks.org/covariance-matrix/
+ *  FIXME: should this be in the obj file?
  */
 void calc_covar_mat_from_obj_centroid (ObjFile_t o[static 1],
                                        float c[static 4], float output[16]);

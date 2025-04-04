@@ -8,12 +8,7 @@
 #include "obj.h"
 #include "utils.h"
 
-#include <gsl/gsl_eigen.h>
-#include <gsl/gsl_matrix_double.h>
-#include <gsl/gsl_vector_double.h>
-#include <stddef.h>
 #include <stdint.h>
-#include <stdio.h>
 #include <stdlib.h>
 
 int
@@ -69,9 +64,10 @@ main (int argc, char **argv)
    *  Need to create a dynamic array type and then stuff the remnants into a
    *  bsp interface thingy.
    */
-  for (size_t i = 0; i < obj.num_faces; i++)
+  for (size_t i = 0; i < dyna_get_size (obj.faces_list); i++)
     {
-      struct PolygonalFace_s *curr = &obj.faces_list[i];
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (obj.faces_list, i);
       int8_t cnt = 0;
       for (size_t j = 0; j < 3; j++)
         {

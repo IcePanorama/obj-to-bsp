@@ -1,7 +1,6 @@
 #ifndef _DYNAMIC_ARRAY_H_
 #define _DYNAMIC_ARRAY_H_
 
-#include <stdint.h>
 #include <stdlib.h>
 
 typedef struct _DynamicArray_s DynamicArray_t;

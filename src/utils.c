@@ -1,9 +1,10 @@
 #include "utils.h"
+#include "dynamic_arr.h"
 #include "log.h"
+#include "obj.h"
 
 #include <gsl/gsl_eigen.h>
 #include <gsl/gsl_matrix_double.h>
-#include <stdio.h>
 
 void
 calc_centroid_from_obj (float centroid[static 4], ObjFile_t o[static 1])
@@ -12,9 +13,12 @@ calc_centroid_from_obj (float centroid[static 4], ObjFile_t o[static 1])
   float y_total = 0.0;
   float z_total = 0.0;
   float w_total = 0.0;
-  for (size_t i = 0; i < o->num_faces; i++)
+
+  size_t num_faces = dyna_get_size (o->faces_list);
+  for (size_t i = 0; i < num_faces; i++)
     {
-      struct PolygonalFace_s *curr = &o->faces_list[i];
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (o->faces_list, i);
       x_total += curr->verts[0]->x;
       x_total += curr->verts[1]->x;
       x_total += curr->verts[2]->x;
@@ -32,10 +36,10 @@ calc_centroid_from_obj (float centroid[static 4], ObjFile_t o[static 1])
       w_total += curr->verts[2]->w;
     }
 
-  x_total /= o->num_faces * 3;
-  y_total /= o->num_faces * 3;
-  z_total /= o->num_faces * 3;
-  w_total /= o->num_faces * 3;
+  x_total /= num_faces * 3;
+  y_total /= num_faces * 3;
+  z_total /= num_faces * 3;
+  w_total /= num_faces * 3;
 
   centroid[0] = x_total;
   centroid[1] = y_total;
@@ -57,9 +61,11 @@ calculate_var_from_obj_centroid (ObjFile_t *o, float c[static 4],
   const float cz = c[2];
   const float cw = c[3];
 
-  for (size_t i = 0; i < o->num_faces; i++)
+  size_t num_faces = dyna_get_size (o->faces_list);
+  for (size_t i = 0; i < num_faces; i++)
     {
-      struct PolygonalFace_s *curr = &o->faces_list[i];
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (o->faces_list, i);
       for (size_t j = 0; j < 3; j++)
         {
           x_var += (curr->verts[j]->x - cx) * (curr->verts[j]->x - cx);
@@ -69,10 +75,10 @@ calculate_var_from_obj_centroid (ObjFile_t *o, float c[static 4],
         }
     }
 
-  x_var /= o->num_faces * 3;
-  y_var /= o->num_faces * 3;
-  z_var /= o->num_faces * 3;
-  w_var /= o->num_faces * 3;
+  x_var /= num_faces * 3;
+  y_var /= num_faces * 3;
+  z_var /= num_faces * 3;
+  w_var /= num_faces * 3;
 
   output[0] = x_var;
   output[5] = y_var;
@@ -96,9 +102,11 @@ calc_covars_from_obj_centroid (ObjFile_t *o, float c[static 4],
   const float cz = c[2];
   const float cw = c[3];
 
-  for (size_t i = 0; i < o->num_faces; i++)
+  size_t num_faces = dyna_get_size (o->faces_list);
+  for (size_t i = 0; i < num_faces; i++)
     {
-      struct PolygonalFace_s *curr = &o->faces_list[i];
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (o->faces_list, i);
       for (size_t j = 0; j < 3; j++)
         {
           x_y_covar += (curr->verts[j]->x - cx) * (curr->verts[j]->y - cy);
@@ -110,12 +118,12 @@ calc_covars_from_obj_centroid (ObjFile_t *o, float c[static 4],
         }
     }
 
-  x_y_covar /= o->num_faces * 3;
-  x_z_covar /= o->num_faces * 3;
-  x_w_covar /= o->num_faces * 3;
-  y_z_covar /= o->num_faces * 3;
-  y_w_covar /= o->num_faces * 3;
-  z_w_covar /= o->num_faces * 3;
+  x_y_covar /= num_faces * 3;
+  x_z_covar /= num_faces * 3;
+  x_w_covar /= num_faces * 3;
+  y_z_covar /= num_faces * 3;
+  y_w_covar /= num_faces * 3;
+  z_w_covar /= num_faces * 3;
 
   output[1] = output[4] = x_y_covar;
   output[2] = output[8] = x_z_covar;

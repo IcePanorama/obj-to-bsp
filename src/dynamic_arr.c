@@ -64,7 +64,7 @@ dyna_append (DynamicArray_t *arr, void *el)
         }
     }
 
-  void *ptr = (void *)((uint8_t *)(arr->data) + (arr->el_size * arr->size));
+  void *ptr = (void *)((char *)(arr->data) + (arr->el_size * arr->size));
   memcpy (ptr, el, arr->el_size);
   arr->size++;
   return 0;
@@ -106,5 +106,5 @@ dyna_at (DynamicArray_t *arr, size_t idx)
   if ((arr == NULL) || (idx >= arr->size) || (arr->data == NULL))
     return NULL;
 
-  return (void *)((uint8_t *)(arr->data) + (arr->el_size * idx));
+  return (void *)((char *)(arr->data) + (arr->el_size * idx));
 }

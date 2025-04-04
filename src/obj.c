@@ -1,73 +1,31 @@
 #include "obj.h"
+#include "dynamic_arr.h"
 #include "log.h"
 
-#include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-
-static int
-create_list (void **list, size_t size)
-{
-  *list = calloc (1, size);
-  if (*list == NULL)
-    return -1;
-
-  return 0;
-}
-
-static int
-resize_list (void **list, size_t new_size)
-{
-  void *tmp = realloc (*list, new_size);
-  if (tmp == NULL)
-    return -1;
-
-  memset ((char *)tmp + (new_size / 2), 0, (new_size / 2));
-
-  *list = tmp;
-  return 0;
-}
 
 static int
 process_new_vertex_norm (ObjFile_t *o, const char *input)
 {
-  if (o->max_num_vertex_normals == 0)
+  if (o->vertex_normals_list == NULL)
     {
-      if (create_list ((void **)&o->vertex_normals_list,
-                       sizeof (struct VertexNormal_s))
-          != 0)
+      o->vertex_normals_list = dyna_create (sizeof (struct VertexNormal_s));
+      if (o->vertex_normals_list == NULL)
         {
           LOG_ERROR_MSG ("Error creating vertex normals list.\n");
           return -1;
         }
-
-      o->max_num_vertex_normals = 1;
     }
 
-  if (o->num_vertex_normals == o->max_num_vertex_normals)
-    {
-      o->max_num_vertex_normals *= 2;
-      if (resize_list ((void **)&o->vertex_normals_list,
-                       sizeof (struct VertexNormal_s)
-                           * o->max_num_vertex_normals)
-          != 0)
-        {
-          LOG_ERROR ("Error resizing vertex normals list to size %ld.\n",
-                     o->max_num_vertex_normals);
-          return -1;
-        }
-    }
-
-  float x, y, z;
+  float x = 0.0;
+  float y = 0.0;
+  float z = 0.0;
   if (sscanf (input, "vn %f %f %f", &x, &y, &z) == 3)
     {
-      o->vertex_normals_list[o->num_vertex_normals].x = x;
-      o->vertex_normals_list[o->num_vertex_normals].y = y;
-      o->vertex_normals_list[o->num_vertex_normals].z = z;
-
+      struct VertexNormal_s tmp = { .x = x, .y = y, .z = z };
+      if (dyna_append (o->vertex_normals_list, (void *)&tmp) != 0)
+        return -1;
       LOG_DEBUG_INFO ("vn %f %f %f\n", x, y, z);
-
-      o->num_vertex_normals++;
     }
   else
     {
@@ -81,42 +39,25 @@ process_new_vertex_norm (ObjFile_t *o, const char *input)
 static int
 process_new_parameter_space_vertex (ObjFile_t *o, const char *input)
 {
-  if (o->max_num_parameter_space_verticies == 0)
+  if (o->parameter_space_vertices_list == NULL)
     {
-      if (create_list ((void **)&o->parameter_space_verticies_list,
-                       sizeof (struct ParameterSpaceVertex_s))
-          != 0)
+      o->parameter_space_vertices_list
+          = dyna_create (sizeof (struct ParameterSpaceVertex_s));
+      if (o->parameter_space_vertices_list == NULL)
         {
-          LOG_ERROR_MSG ("Error creating parameter space verticies list.\n");
-          return -1;
-        }
-
-      o->max_num_parameter_space_verticies = 1;
-    }
-
-  if (o->num_parameter_space_verticies == o->max_num_parameter_space_verticies)
-    {
-      o->max_num_parameter_space_verticies *= 2;
-      if (resize_list ((void **)&o->parameter_space_verticies_list,
-                       sizeof (struct ParameterSpaceVertex_s)
-                           * o->max_num_parameter_space_verticies)
-          != 0)
-        {
-          LOG_ERROR (
-              "Error resizing parameter space verticies list to size %ld.\n",
-              o->max_num_parameter_space_verticies);
+          LOG_ERROR_MSG ("Error creating parameter space vertices list.\n");
           return -1;
         }
     }
 
-  float u, v = 0.0, w = 0.0;
+  float u = 0.0;
+  float v = 0.0;
+  float w = 0.0;
   if (sscanf (input, "vp %f %f %f", &u, &v, &w) >= 1)
     {
-      /* clang-format off */
-      o->parameter_space_verticies_list[o ->num_parameter_space_verticies].u = u;
-      o->parameter_space_verticies_list[o ->num_parameter_space_verticies].v = v;
-      o->parameter_space_verticies_list[o ->num_parameter_space_verticies].w = w;
-      /* clang-format on */
+      struct ParameterSpaceVertex_s tmp = { .u = u, .v = v, .w = w };
+      if (dyna_append (o->parameter_space_vertices_list, (void *)&tmp) != 0)
+        return -1;
 
       LOG_DEBUG_INFO ("vp %f %f %f\n", u, v, w);
     }
@@ -132,41 +73,25 @@ process_new_parameter_space_vertex (ObjFile_t *o, const char *input)
 static int
 process_new_texture_coords (ObjFile_t *o, const char *input)
 {
-  if (o->max_num_texture_coords == 0)
+  if (o->texture_coords_list == NULL)
     {
-      if (create_list ((void **)&o->texture_coords_list,
-                       sizeof (struct TextureCoord_s))
-          != 0)
+      o->texture_coords_list = dyna_create (sizeof (struct TextureCoord_s));
+      if (o->texture_coords_list == NULL)
         {
           LOG_ERROR_MSG ("Error creating texture coordinates list.\n");
           return -1;
         }
-
-      o->max_num_texture_coords = 1;
     }
 
-  if (o->num_texture_coords == o->max_num_texture_coords)
-    {
-      o->max_num_texture_coords *= 2;
-      if (resize_list ((void **)&o->texture_coords_list,
-                       sizeof (struct TextureCoord_s)
-                           * o->max_num_texture_coords)
-          != 0)
-        {
-          LOG_ERROR ("Error resizing texture coordinates list to size %ld.\n",
-                     o->max_num_texture_coords);
-          return -1;
-        }
-    }
-
-  float u, v = 0.0, w = 0.0;
+  float u = 0.0;
+  float v = 0.0;
+  float w = 0.0;
   if (sscanf (input, "vt %f %f %f", &u, &v, &w) >= 1)
     {
-      o->texture_coords_list[o->num_texture_coords].u = u;
-      o->texture_coords_list[o->num_texture_coords].v = v;
-      o->texture_coords_list[o->num_texture_coords].w = w;
-
+      struct TextureCoord_s tmp = { .u = u, .v = v, .w = w };
       LOG_DEBUG_INFO ("vt %f %f %f\n", u, v, w);
+      if (dyna_append (o->texture_coords_list, (void *)&tmp) != 0)
+        return -1;
     }
   else
     {
@@ -174,50 +99,33 @@ process_new_texture_coords (ObjFile_t *o, const char *input)
       return -1;
     }
 
-  o->num_texture_coords++;
   return 0;
 }
 
 static int
 process_new_vertex_coordinates (ObjFile_t *o, const char *line)
 {
-  if (o->max_num_verticies == 0)
+  if (o->vertices_list == NULL)
     {
-      if (create_list ((void **)&o->verticies_list,
-                       sizeof (struct VertexCoord_s))
-          != 0)
+      o->vertices_list = dyna_create (sizeof (struct VertexCoord_s));
+      if (o->vertices_list == NULL)
         {
-          LOG_ERROR_MSG ("Error creating verticies list.\n");
-          return -1;
-        }
-
-      o->max_num_verticies = 1;
-    }
-
-  if (o->num_verticies == o->max_num_verticies)
-    {
-      o->max_num_verticies *= 2;
-      if (resize_list ((void **)&o->verticies_list,
-                       sizeof (struct VertexCoord_s) * o->max_num_verticies)
-          != 0)
-        {
-          LOG_ERROR ("Error resizing vertices list to size %ld.\n",
-                     o->max_num_verticies);
+          LOG_ERROR_MSG ("Error creating vertices list.\n");
           return -1;
         }
     }
 
-  float x, y, z, w = 1.0;
+  float x = 0.0;
+  float y = 0.0;
+  float z = 0.0;
+  float w = 1.0;
   if (sscanf (line, "v %f %f %f %f", &x, &y, &z, &w) >= 3)
     {
-      o->verticies_list[o->num_verticies].x = x;
-      o->verticies_list[o->num_verticies].y = y;
-      o->verticies_list[o->num_verticies].z = z;
-      o->verticies_list[o->num_verticies].w = w;
+      struct VertexCoord_s tmp = { .x = x, .y = y, .z = z, .w = w };
+      if (dyna_append (o->vertices_list, (void *)&tmp) != 0)
+        return -1;
 
       LOG_DEBUG_INFO ("v %f %f %f %f\n", x, y, z, w);
-
-      o->num_verticies++;
     }
   else
     {
@@ -231,28 +139,12 @@ process_new_vertex_coordinates (ObjFile_t *o, const char *line)
 static int
 process_new_face (ObjFile_t *o, const char *input)
 {
-  if (o->max_num_faces == 0)
+  if (o->faces_list == NULL)
     {
-      if (create_list ((void **)&o->faces_list,
-                       sizeof (struct PolygonalFace_s))
-          != 0)
+      o->faces_list = dyna_create (sizeof (struct PolygonalFace_s));
+      if (o->faces_list == NULL)
         {
           LOG_ERROR_MSG ("Error creating faces list.\n");
-          return -1;
-        }
-
-      o->max_num_faces = 1;
-    }
-
-  if (o->num_faces == o->max_num_faces)
-    {
-      o->max_num_faces *= 2;
-      if (resize_list ((void **)&o->faces_list,
-                       sizeof (struct PolygonalFace_s) * o->max_num_faces)
-          != 0)
-        {
-          LOG_ERROR ("Error resizing faces list to size %ld.\n",
-                     o->max_num_faces);
           return -1;
         }
     }
@@ -264,7 +156,7 @@ process_new_face (ObjFile_t *o, const char *input)
   size_t cnt = 0;
   char *input_ptr = input_cpy + 2; // skip "f "
   char *token = strchr (input_ptr, ' ');
-  struct PolygonalFace_s *curr = &o->faces_list[o->num_faces];
+  struct PolygonalFace_s curr = { 0 };
 
   while (token != NULL)
     {
@@ -285,32 +177,37 @@ process_new_face (ObjFile_t *o, const char *input)
         {
           if (num_parts == 0)
             {
-              if ((size_t)(atoi (idx) - 1) >= o->num_verticies)
+              if ((size_t)(atoi (idx) - 1) >= dyna_get_size (o->vertices_list))
                 {
                   LOG_ERROR ("Invalid vertex index, %d.\n", atoi (idx) - 1);
                   return -1;
                 }
-              curr->verts[cnt] = &o->verticies_list[atoi (idx) - 1];
+              curr.verts[cnt] = (struct VertexCoord_s *)dyna_at (
+                  o->vertices_list, atoi (idx) - 1);
             }
           else if (num_parts == 1)
             {
-              if ((size_t)(atoi (idx) - 1) >= o->num_texture_coords)
+              if ((size_t)(atoi (idx) - 1)
+                  >= dyna_get_size (o->texture_coords_list))
                 {
                   LOG_ERROR ("Invalid texture coordinate index, %d.\n",
                              atoi (idx) - 1);
                   return -1;
                 }
-              curr->tex_coords[cnt] = &o->texture_coords_list[atoi (idx) - 1];
+              curr.tex_coords[cnt]
+                  = dyna_at (o->texture_coords_list, atoi (idx) - 1);
             }
           else if (num_parts == 2)
             {
-              if ((size_t)(atoi (idx) - 1) >= o->num_vertex_normals)
+              if ((size_t)(atoi (idx) - 1)
+                  >= dyna_get_size (o->vertex_normals_list))
                 {
                   LOG_ERROR ("Invalid vertex normal index, %d.\n",
                              atoi (idx) - 1);
                   return -1;
                 }
-              curr->norms[cnt] = &o->vertex_normals_list[atoi (idx) - 1];
+              curr.norms[cnt]
+                  = dyna_at (o->vertex_normals_list, atoi (idx) - 1);
             }
 
           num_parts++;
@@ -325,9 +222,11 @@ process_new_face (ObjFile_t *o, const char *input)
       token = strchr (input_ptr, ' ');
     }
 
+  if (dyna_append (o->faces_list, (void *)&curr) != 0)
+    return -1;
+
   LOG_DEBUG_INFO ("%s", input);
 
-  o->num_faces++;
   return 0;
 }
 
@@ -419,16 +318,14 @@ create_obj_file_from_file (ObjFile_t o[static 1],
 void
 free_obj_file (ObjFile_t *o)
 {
-  if (o->verticies_list != NULL)
-    free (o->verticies_list);
-  if (o->vertex_normals_list != NULL)
-    free (o->vertex_normals_list);
-  if (o->parameter_space_verticies_list != NULL)
-    free (o->parameter_space_verticies_list);
+  if (o->vertices_list != NULL)
+    dyna_free (o->vertices_list);
   if (o->texture_coords_list != NULL)
-    free (o->texture_coords_list);
+    dyna_free (o->texture_coords_list);
+  if (o->vertex_normals_list != NULL)
+    dyna_free (o->vertex_normals_list);
+  if (o->parameter_space_vertices_list != NULL)
+    dyna_free (o->parameter_space_vertices_list);
   if (o->faces_list != NULL)
-    {
-      free (o->faces_list);
-    }
+    dyna_free (o->faces_list);
 }
