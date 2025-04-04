@@ -28,7 +28,7 @@ set(SRC_FILES
     "${SRC_DIR}/dynamic_arr.c"
     "${SRC_DIR}/utils.c"
     "${SRC_DIR}/main.c"
-    "${SRC_DIR}/obj.c"
+    "${SRC_DIR}/obj/file.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
@@ -36,7 +36,7 @@ set(INCL_FILES
     "${INCL_DIR}/dynamic_arr.h"
     "${INCL_DIR}/utils.h"
     "${INCL_DIR}/log.h"
-    "${INCL_DIR}/obj.h"
+    "${INCL_DIR}/obj/file.h"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})

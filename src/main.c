@@ -5,7 +5,9 @@
  */
 #include "dynamic_arr.h"
 #include "log.h"
-#include "obj.h"
+#include "obj/face.h"
+#include "obj/file.h"
+#include "obj/vertex_coord.h"
 #include "utils.h"
 
 #include <stdint.h>
@@ -22,18 +24,17 @@ main (int argc, char **argv)
     }
 
   // FIXME: assuming argv[1] is an obj file for the time being.
-  ObjFile_t obj;
-  int status = create_obj_file_from_file (&obj, argv[1]);
-  if (status != 0)
+  ObjFile_t *obj = obj_create (argv[1]);
+  if (obj == NULL)
     return EXIT_FAILURE;
 
   float centroid[4] = { 0 };
-  calc_centroid_from_obj (centroid, &obj);
+  obj_calc_centroid (obj, centroid);
   LOG_DEBUG_INFO ("Centroid: (%f, %f, %f, %f)\n", centroid[0], centroid[1],
                   centroid[2], centroid[3]);
 
   float covar_mat[16] = { 0 };
-  calc_covar_mat_from_obj_centroid (&obj, centroid, covar_mat);
+  obj_calc_covar_mat_w_centroid (obj, centroid, covar_mat);
 
   print_covar_mat (covar_mat);
 
@@ -41,7 +42,7 @@ main (int argc, char **argv)
   float evec[4][4] = { { 0 } };
   if (calc_eigenvals_vecs (covar_mat, eval, evec) != 0)
     {
-      free_obj_file (&obj);
+      obj_free (obj);
       return EXIT_FAILURE;
     }
 
@@ -64,10 +65,11 @@ main (int argc, char **argv)
    *  Need to create a dynamic array type and then stuff the remnants into a
    *  bsp interface thingy.
    */
-  for (size_t i = 0; i < dyna_get_size (obj.faces_list); i++)
+  DynamicArray_t *faces_list = obj_get_faces_list (obj);
+  for (size_t i = 0; i < dyna_get_size (faces_list); i++)
     {
       struct PolygonalFace_s *curr
-          = (struct PolygonalFace_s *)dyna_at (obj.faces_list, i);
+          = (struct PolygonalFace_s *)dyna_at (faces_list, i);
       int8_t cnt = 0;
       for (size_t j = 0; j < 3; j++)
         {
@@ -115,6 +117,6 @@ main (int argc, char **argv)
   dyna_free (back);
   dyna_free (front);
   dyna_free (split);
-  free_obj_file (&obj);
+  obj_free (obj);
   return EXIT_SUCCESS;
 }

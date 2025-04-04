@@ -1,8 +1,23 @@
-#include "obj.h"
+#include "obj/file.h"
 #include "dynamic_arr.h"
 #include "log.h"
+#include "obj/face.h"
+#include "obj/param_space_vertex.h"
+#include "obj/tex_coord.h"
+#include "obj/vertex_coord.h"
+#include "obj/vertex_norm.h"
 
+#include <stdlib.h>
 #include <string.h>
+
+struct ObjFile_s
+{
+  DynamicArray_t *vertices_list;
+  DynamicArray_t *texture_coords_list;
+  DynamicArray_t *vertex_normals_list;
+  DynamicArray_t *parameter_space_vertices_list;
+  DynamicArray_t *faces_list;
+};
 
 static int
 process_new_vertex_norm (ObjFile_t *o, const char *input)
@@ -107,7 +122,7 @@ process_new_vertex_coordinates (ObjFile_t *o, const char *line)
 {
   if (o->vertices_list == NULL)
     {
-      o->vertices_list = dyna_create (sizeof (struct VertexCoord_s));
+      o->vertices_list = dyna_create (sizeof (struct OBJVertexCoord_s));
       if (o->vertices_list == NULL)
         {
           LOG_ERROR_MSG ("Error creating vertices list.\n");
@@ -121,7 +136,7 @@ process_new_vertex_coordinates (ObjFile_t *o, const char *line)
   float w = 1.0;
   if (sscanf (line, "v %f %f %f %f", &x, &y, &z, &w) >= 3)
     {
-      struct VertexCoord_s tmp = { .x = x, .y = y, .z = z, .w = w };
+      struct OBJVertexCoord_s tmp = { .x = x, .y = y, .z = z, .w = w };
       if (dyna_append (o->vertices_list, (void *)&tmp) != 0)
         return -1;
 
@@ -182,7 +197,7 @@ process_new_face (ObjFile_t *o, const char *input)
                   LOG_ERROR ("Invalid vertex index, %d.\n", atoi (idx) - 1);
                   return -1;
                 }
-              curr.verts[cnt] = (struct VertexCoord_s *)dyna_at (
+              curr.verts[cnt] = (struct OBJVertexCoord_s *)dyna_at (
                   o->vertices_list, atoi (idx) - 1);
             }
           else if (num_parts == 1)
@@ -291,33 +306,41 @@ process_faces (ObjFile_t o[static 1], FILE fptr[static 1])
   return 0;
 }
 
-int
-create_obj_file_from_file (ObjFile_t o[static 1],
-                           const char file_path[static 1])
+ObjFile_t *
+obj_create (const char file_path[static 1])
 {
   FILE *fptr = fopen (file_path, "r");
   if (fptr == NULL)
     {
       LOG_ERROR ("Unable to open file, %s.\n", file_path);
-      return -1;
+      return NULL;
     }
 
-  memset (o, 0, sizeof (ObjFile_t));
-
-  if ((process_verts_txt_coords (o, fptr) != 0)
-      || (process_faces (o, fptr) != 0))
+  ObjFile_t *obj = calloc (1, sizeof (ObjFile_t));
+  if (obj == NULL)
     {
+      LOG_ERROR_MSG ("Unable to allocate memory for OBJ file.\n");
+      return NULL;
+    }
+
+  if ((process_verts_txt_coords (obj, fptr) != 0)
+      || (process_faces (obj, fptr) != 0))
+    {
+      free (obj);
       fclose (fptr);
-      return -1;
+      return NULL;
     }
 
   fclose (fptr);
-  return 0;
+  return obj;
 }
 
 void
-free_obj_file (ObjFile_t *o)
+obj_free (ObjFile_t *o)
 {
+  if (o == NULL)
+    return;
+
   if (o->vertices_list != NULL)
     dyna_free (o->vertices_list);
   if (o->texture_coords_list != NULL)
@@ -328,4 +351,162 @@ free_obj_file (ObjFile_t *o)
     dyna_free (o->parameter_space_vertices_list);
   if (o->faces_list != NULL)
     dyna_free (o->faces_list);
+  free (o);
+}
+
+int
+obj_calc_centroid (ObjFile_t *o, float centroid[static 4])
+{
+  if (o == NULL)
+    return -1;
+
+  float x_total = 0.0;
+  float y_total = 0.0;
+  float z_total = 0.0;
+  float w_total = 0.0;
+
+  size_t num_faces = dyna_get_size (o->faces_list);
+  for (size_t i = 0; i < num_faces; i++)
+    {
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (o->faces_list, i);
+      x_total += curr->verts[0]->x;
+      x_total += curr->verts[1]->x;
+      x_total += curr->verts[2]->x;
+
+      y_total += curr->verts[0]->y;
+      y_total += curr->verts[1]->y;
+      y_total += curr->verts[2]->y;
+
+      z_total += curr->verts[0]->z;
+      z_total += curr->verts[1]->z;
+      z_total += curr->verts[2]->z;
+
+      w_total += curr->verts[0]->w;
+      w_total += curr->verts[1]->w;
+      w_total += curr->verts[2]->w;
+    }
+
+  x_total /= num_faces * 3;
+  y_total /= num_faces * 3;
+  z_total /= num_faces * 3;
+  w_total /= num_faces * 3;
+
+  centroid[0] = x_total;
+  centroid[1] = y_total;
+  centroid[2] = z_total;
+  centroid[3] = w_total;
+  return 0;
+}
+
+static void
+calculate_var_from_obj_centroid (ObjFile_t *o, float c[static 4],
+                                 float output[16])
+{
+  float x_var = 0.0;
+  float y_var = 0.0;
+  float z_var = 0.0;
+  float w_var = 0.0;
+
+  const float cx = c[0];
+  const float cy = c[1];
+  const float cz = c[2];
+  const float cw = c[3];
+
+  size_t num_faces = dyna_get_size (o->faces_list);
+  for (size_t i = 0; i < num_faces; i++)
+    {
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (o->faces_list, i);
+      for (size_t j = 0; j < 3; j++)
+        {
+          x_var += (curr->verts[j]->x - cx) * (curr->verts[j]->x - cx);
+          y_var += (curr->verts[j]->y - cy) * (curr->verts[j]->y - cy);
+          z_var += (curr->verts[j]->z - cz) * (curr->verts[j]->z - cz);
+          w_var += (curr->verts[j]->w - cw) * (curr->verts[j]->w - cw);
+        }
+    }
+
+  x_var /= num_faces * 3;
+  y_var /= num_faces * 3;
+  z_var /= num_faces * 3;
+  w_var /= num_faces * 3;
+
+  output[0] = x_var;
+  output[5] = y_var;
+  output[10] = z_var;
+  output[15] = w_var;
+}
+
+DynamicArray_t *
+obj_get_faces_list (ObjFile_t *o)
+{
+  if (o == NULL)
+    return NULL;
+
+  return o->faces_list;
+}
+
+static void
+calc_covars_from_obj_centroid (ObjFile_t *o, float c[static 4],
+                               float output[16])
+{
+  float x_y_covar = 0.0;
+  float x_z_covar = 0.0;
+  float x_w_covar = 0.0;
+  float y_z_covar = 0.0;
+  float y_w_covar = 0.0;
+  float z_w_covar = 0.0;
+
+  const float cx = c[0];
+  const float cy = c[1];
+  const float cz = c[2];
+  const float cw = c[3];
+
+  DynamicArray_t *faces_list = obj_get_faces_list (o);
+  size_t num_faces = dyna_get_size (faces_list);
+  for (size_t i = 0; i < num_faces; i++)
+    {
+      struct PolygonalFace_s *curr
+          = (struct PolygonalFace_s *)dyna_at (faces_list, i);
+      for (size_t j = 0; j < 3; j++)
+        {
+          x_y_covar += (curr->verts[j]->x - cx) * (curr->verts[j]->y - cy);
+          x_z_covar += (curr->verts[j]->x - cx) * (curr->verts[j]->z - cz);
+          x_w_covar += (curr->verts[j]->x - cx) * (curr->verts[j]->w - cw);
+          y_z_covar += (curr->verts[j]->y - cy) * (curr->verts[j]->z - cz);
+          y_w_covar += (curr->verts[j]->y - cy) * (curr->verts[j]->w - cw);
+          z_w_covar += (curr->verts[j]->z - cz) * (curr->verts[j]->w - cw);
+        }
+    }
+
+  x_y_covar /= num_faces * 3;
+  x_z_covar /= num_faces * 3;
+  x_w_covar /= num_faces * 3;
+  y_z_covar /= num_faces * 3;
+  y_w_covar /= num_faces * 3;
+  z_w_covar /= num_faces * 3;
+
+  output[1] = output[4] = x_y_covar;
+  output[2] = output[8] = x_z_covar;
+  output[3] = output[12] = x_w_covar;
+
+  output[6] = output[9] = y_z_covar;
+  output[7] = output[13] = y_w_covar;
+
+  output[11] = output[14] = z_w_covar;
+  return;
+}
+
+int
+obj_calc_covar_mat_w_centroid (ObjFile_t *o, float c[static 4],
+                               float output[16])
+{
+  if (o == NULL)
+    return -1;
+
+  calculate_var_from_obj_centroid (o, c, output);
+  calc_covars_from_obj_centroid (o, c, output);
+
+  return 0;
 }
