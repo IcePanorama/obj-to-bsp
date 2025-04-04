@@ -65,6 +65,8 @@ bsp_free (BSPTree_t *t)
 
 #include <stdint.h>
 
+#define EPSILON (1e-6)
+
 int
 bsp_process_obj (BSPTree_t *t, ObjFile_t *obj, float sp_center[static 4],
                  float sp_norm[static 4])
@@ -140,7 +142,7 @@ bsp_process_obj (BSPTree_t *t, ObjFile_t *obj, float sp_center[static 4],
           float param
               = u_calc_line_plane_intersection (a, b, sp_center, sp_norm);
           printf ("%f\n", param);
-          if (0.0 <= param && param <= 1.0)
+          if ((0.0 - (EPSILON)) <= param && param <= (1.0 + (EPSILON)))
             {
               // TODO: calc "v_i + param (v_j - v_i)". See notes.
               puts ("foo");
