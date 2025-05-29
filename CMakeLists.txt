@@ -25,21 +25,15 @@ add_compile_options(
 
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
-    "${SRC_DIR}/dynamic_arr.c"
-    "${SRC_DIR}/utils.c"
-    "${SRC_DIR}/main.c"
     "${SRC_DIR}/obj/file.c"
-    "${SRC_DIR}/bsp_tree/tree.c"
+    "${SRC_DIR}/obj/object.c"
+    "${SRC_DIR}/main.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
-    "${INCL_DIR}/dynamic_arr.h"
-    "${INCL_DIR}/utils.h"
-    "${INCL_DIR}/log.h"
     "${INCL_DIR}/obj/file.h"
-    "${INCL_DIR}/bsp_tree/tree.h"
-    "${INCL_DIR}/bsp_tree/node.h"
+    "${INCL_DIR}/obj/object.h"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
@@ -48,12 +42,12 @@ target_include_directories(${PROJECT_NAME} PRIVATE ${INCL_DIR})
 
 #FIXME: we shouldn't be relying on preinstalled libs for this.
 # download all of these (except for libm) locally and store it in ./libs/
-find_library(GNU_SCI_LIB gsl REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${GNU_SCI_LIB})
-find_library(GNU_SCI_LIB_CBLAS gslcblas REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${GNU_SCI_LIB_CBLAS})
-find_library(MAT_LIB m REQUIRED)
-target_link_libraries(${PROJECT_NAME} ${MAT_LIB})
+#find_library(GNU_SCI_LIB gsl REQUIRED)
+#target_link_libraries(${PROJECT_NAME} ${GNU_SCI_LIB})
+#find_library(GNU_SCI_LIB_CBLAS gslcblas REQUIRED)
+#target_link_libraries(${PROJECT_NAME} ${GNU_SCI_LIB_CBLAS})
+#find_library(MAT_LIB m REQUIRED)
+#target_link_libraries(${PROJECT_NAME} ${MAT_LIB})
 
 find_program(CLANG_FORMAT_EXECUTABLE NAMES clang-format)
 if(CLANG_FORMAT_EXECUTABLE)
