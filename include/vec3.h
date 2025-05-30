@@ -8,4 +8,7 @@ typedef struct Vec3_s
   float z;
 } Vec3_t;
 
+Vec3_t v3_init (char *raw_data);
+void v3_normalize (Vec3_t v[static 1]);
+
 #endif /* _VECTOR_3_H_ */

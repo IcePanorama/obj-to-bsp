@@ -28,8 +28,10 @@ set(SRC_FILES
     "${SRC_DIR}/obj/file.c"
     "${SRC_DIR}/obj/object.c"
     "${SRC_DIR}/obj/vert_coords.c"
+    "${SRC_DIR}/obj/normal.c"
     "${SRC_DIR}/dynamic_arr.c"
     "${SRC_DIR}/main.c"
+    "${SRC_DIR}/vec3.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
@@ -37,6 +39,7 @@ set(INCL_FILES
     "${INCL_DIR}/obj/file.h"
     "${INCL_DIR}/obj/object.h"
     "${INCL_DIR}/obj/vert_coords.h"
+    "${INCL_DIR}/obj/normal.h"
     "${INCL_DIR}/dynamic_arr.h"
     "${INCL_DIR}/vec3.h"
 )
@@ -44,6 +47,7 @@ set(INCL_FILES
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCL_DIR})
+target_link_libraries(${PROJECT_NAME} m)
 
 #FIXME: we shouldn't be relying on preinstalled libs for this.
 # download all of these (except for libm) locally and store it in ./libs/

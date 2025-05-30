@@ -1,5 +1,6 @@
 #include "obj/object.h"
 #include "dynamic_arr.h"
+#include "obj/normal.h"
 #include "obj/vert_coords.h"
 
 #include <assert.h>
@@ -44,9 +45,14 @@ no_init (NamedObject_t *no, const char name[static 1],
   no->name[strlen (no->name) - 1] = '\0'; // replace '\n' w/ '\0'
 
   DynamicArray_t *verts = dyna_alloc (sizeof (VertCoord_t));
-  if (verts == NULL)
+  DynamicArray_t *norms = dyna_alloc (sizeof (Normal_t));
+  if ((verts == NULL) || (norms == NULL))
     {
       fprintf (stderr, "%s: Out of memory error.\n", __func__);
+      if (verts != NULL)
+        free (verts);
+      if (norms != NULL)
+        free (norms);
       return -1;
     }
 
@@ -59,7 +65,16 @@ no_init (NamedObject_t *no, const char name[static 1],
           goto err_exit;
         }
 
-      if (strncmp (curr_line, "v ", 2) == 0)
+      if (strncmp (curr_line, "vn", 2) == 0)
+        {
+          nm_init (curr_line + 3);
+        }
+      else if (strncmp (curr_line, "vt", 2) == 0)
+        {
+          printf ("%s", curr_line + 3);
+          break;
+        }
+      else if (curr_line[0] == 'v')
         {
           VertCoord_t v = vc_init (curr_line + 2);
           if (dyna_append (verts, (void *)&v) != 0)
@@ -76,16 +91,20 @@ no_init (NamedObject_t *no, const char name[static 1],
         }
     }
 
+  dyna_free (norms);
   dyna_free (verts);
   return 0;
 err_exit:
 
+  /*
   for (size_t i = 0; i < dyna_get_size (verts); i++)
     {
       VertCoord_t *curr = dyna_at (verts, i);
       printf ("(%.2f, %.2f, %.2f)\n", curr->x, curr->y, curr->z);
     }
+  */
 
+  dyna_free (norms);
   dyna_free (verts);
   return -1;
 }
