@@ -29,7 +29,8 @@ obj_free (WavefrontObj_t *obj)
 }
 
 static int
-append_object (WavefrontObj_t *obj, const char line[static 1])
+append_object (WavefrontObj_t *obj, const char name[static 1],
+               FILE *input_fptr)
 {
   NamedObject_t *o = no_alloc ();
   if (o == NULL)
@@ -38,7 +39,7 @@ append_object (WavefrontObj_t *obj, const char line[static 1])
       return -1;
     }
 
-  if (no_init (o, line) != 0)
+  if (no_init (o, name, input_fptr) != 0)
     {
       no_free (o);
       return -1;
@@ -79,12 +80,12 @@ obj_init (WavefrontObj_t *obj, const char path[static 1])
         case '#':
           continue;
         case 'o':
-          if (append_object (obj, line + 2) != 0)
+          if (append_object (obj, line + 2, obj_fptr) != 0)
             goto err_exit;
           break;
         default:
-          fprintf (stderr, "Unrecognized char, '%c', in line: %s", line[0],
-                   line);
+          fprintf (stderr, "%s: Unrecognized char, '%c', in line %s", __func__,
+                   line[0], line);
           goto err_exit;
         }
     }

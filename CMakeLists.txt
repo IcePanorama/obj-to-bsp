@@ -27,6 +27,8 @@ set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
     "${SRC_DIR}/obj/file.c"
     "${SRC_DIR}/obj/object.c"
+    "${SRC_DIR}/obj/vert_coords.c"
+    "${SRC_DIR}/dynamic_arr.c"
     "${SRC_DIR}/main.c"
 )
 
@@ -34,6 +36,9 @@ set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
     "${INCL_DIR}/obj/file.h"
     "${INCL_DIR}/obj/object.h"
+    "${INCL_DIR}/obj/vert_coords.h"
+    "${INCL_DIR}/dynamic_arr.h"
+    "${INCL_DIR}/vec3.h"
 )
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR})

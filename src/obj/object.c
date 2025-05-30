@@ -1,5 +1,8 @@
 #include "obj/object.h"
+#include "dynamic_arr.h"
+#include "obj/vert_coords.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,8 +10,7 @@
 struct NamedObject_s
 {
   char *name;
-// VertexCoord_t *verts;
-// Face_t *faces;
+  // Face_t *faces;
 };
 
 NamedObject_t *
@@ -29,18 +31,63 @@ no_free (NamedObject_t *no)
 }
 
 int
-no_init (NamedObject_t *no, const char line[static 1])
+no_init (NamedObject_t *no, const char name[static 1],
+         FILE input_fptr[static 1])
 {
   if (no == NULL)
     return -1;
 
-  no->name = malloc (sizeof (char) * (strlen (line) + 1));
+  no->name = malloc (sizeof (char) * (strlen (name) + 1));
   if (no->name == NULL)
     return -1;
-  strcpy (no->name, line);
+  strcpy (no->name, name);
   no->name[strlen (no->name) - 1] = '\0'; // replace '\n' w/ '\0'
 
+  DynamicArray_t *verts = dyna_alloc (sizeof (VertCoord_t));
+  if (verts == NULL)
+    {
+      fprintf (stderr, "%s: Out of memory error.\n", __func__);
+      return -1;
+    }
+
+  while (!feof (input_fptr))
+    {
+      char curr_line[256] = { 0 };
+      if (fgets (curr_line, 256, input_fptr) == NULL)
+        {
+          fprintf (stderr, "%s: failed to read line from file.\n", __func__);
+          goto err_exit;
+        }
+
+      if (strncmp (curr_line, "v ", 2) == 0)
+        {
+          VertCoord_t v = vc_init (curr_line + 2);
+          if (dyna_append (verts, (void *)&v) != 0)
+            {
+              // FIXME: clean up
+              fprintf (stderr, "%s: append failed.\n", __func__);
+              goto err_exit;
+            }
+        }
+      else
+        {
+          fprintf (stderr, "%s: Unrecognized line %s", __func__, curr_line);
+          goto err_exit;
+        }
+    }
+
+  dyna_free (verts);
   return 0;
+err_exit:
+
+  for (size_t i = 0; i < dyna_get_size (verts); i++)
+    {
+      VertCoord_t *curr = dyna_at (verts, i);
+      printf ("(%.2f, %.2f, %.2f)\n", curr->x, curr->y, curr->z);
+    }
+
+  dyna_free (verts);
+  return -1;
 }
 
 void
