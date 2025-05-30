@@ -117,6 +117,6 @@ dyna_print (DynamicArray_t *arr, void (*print_fn) (void *el))
 
   for (size_t i = 0; i < arr->size; i++)
     {
-      (*print_fn) ((void *)((char *)(arr->data) + (arr->el_size * i)));
+      (*print_fn) ((char *)(arr->data) + (arr->el_size * i));
     }
 }

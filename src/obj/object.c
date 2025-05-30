@@ -5,6 +5,7 @@
 #include "vec3.h"
 
 #include <assert.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -57,6 +58,8 @@ no_init (NamedObject_t *no, const char name[static 1],
       return -1;
     }
 
+  bool smoothShading = false;
+
   while (!feof (input_fptr))
     {
       char curr_line[256] = { 0 };
@@ -82,13 +85,10 @@ no_init (NamedObject_t *no, const char name[static 1],
           VertCoord_t v = vc_init (curr_line + 2);
           if (dyna_append (verts, (void *)&v) != 0)
             goto append_failure;
-          /*
-                {
-                  // FIXME: clean up
-                  fprintf (stderr, "%s: append failed.\n", __func__);
-                  goto err_exit;
-                }
-                */
+        }
+      else if (curr_line[0] == 's')
+        {
+          smoothShading = (curr_line[3] == '0');
         }
       else
         {
@@ -104,6 +104,7 @@ append_failure:
   fprintf (stderr, "%s: append failed.\n", __func__);
 err_exit:
 
+  printf ("Smooth shading? %s\n", smoothShading ? "true" : "false");
   puts ("Verts:");
   dyna_print (verts, &v3_print);
   puts ("Norms:");
