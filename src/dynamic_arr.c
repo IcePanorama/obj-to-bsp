@@ -108,3 +108,15 @@ dyna_at (DynamicArray_t *arr, size_t idx)
 
   return (void *)((char *)(arr->data) + (arr->el_size * idx));
 }
+
+void
+dyna_print (DynamicArray_t *arr, void (*print_fn) (void *el))
+{
+  if ((arr == NULL) || (print_fn == NULL))
+    return;
+
+  for (size_t i = 0; i < arr->size; i++)
+    {
+      (*print_fn) ((void *)((char *)(arr->data) + (arr->el_size * i)));
+    }
+}

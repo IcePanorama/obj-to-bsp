@@ -2,6 +2,7 @@
 #include "dynamic_arr.h"
 #include "obj/normal.h"
 #include "obj/vert_coords.h"
+#include "vec3.h"
 
 #include <assert.h>
 #include <stdio.h>
@@ -67,7 +68,9 @@ no_init (NamedObject_t *no, const char name[static 1],
 
       if (strncmp (curr_line, "vn", 2) == 0)
         {
-          nm_init (curr_line + 3);
+          Normal_t n = nm_init (curr_line + 3);
+          if (dyna_append (norms, &n) != 0)
+            goto append_failure;
         }
       else if (strncmp (curr_line, "vt", 2) == 0)
         {
@@ -78,11 +81,14 @@ no_init (NamedObject_t *no, const char name[static 1],
         {
           VertCoord_t v = vc_init (curr_line + 2);
           if (dyna_append (verts, (void *)&v) != 0)
-            {
-              // FIXME: clean up
-              fprintf (stderr, "%s: append failed.\n", __func__);
-              goto err_exit;
-            }
+            goto append_failure;
+          /*
+                {
+                  // FIXME: clean up
+                  fprintf (stderr, "%s: append failed.\n", __func__);
+                  goto err_exit;
+                }
+                */
         }
       else
         {
@@ -94,15 +100,14 @@ no_init (NamedObject_t *no, const char name[static 1],
   dyna_free (norms);
   dyna_free (verts);
   return 0;
+append_failure:
+  fprintf (stderr, "%s: append failed.\n", __func__);
 err_exit:
 
-  /*
-  for (size_t i = 0; i < dyna_get_size (verts); i++)
-    {
-      VertCoord_t *curr = dyna_at (verts, i);
-      printf ("(%.2f, %.2f, %.2f)\n", curr->x, curr->y, curr->z);
-    }
-  */
+  puts ("Verts:");
+  dyna_print (verts, &v3_print);
+  puts ("Norms:");
+  dyna_print (norms, &v3_print);
 
   dyna_free (norms);
   dyna_free (verts);

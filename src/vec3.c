@@ -36,3 +36,10 @@ v3_normalize (Vec3_t v[static 1])
   v->y /= m;
   v->z /= m;
 }
+
+void
+v3_print (void *v)
+{
+  printf ("(%.4f, %.4f, %.4f)\n", ((Vec3_t *)v)->x, ((Vec3_t *)v)->y,
+          ((Vec3_t *)v)->z);
+}
