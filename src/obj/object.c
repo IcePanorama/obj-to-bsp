@@ -1,5 +1,6 @@
 #include "obj/object.h"
 #include "dynamic_arr.h"
+#include "obj/face.h"
 #include "obj/normal.h"
 #include "obj/vert_coords.h"
 #include "vec3.h"
@@ -78,7 +79,19 @@ no_init (NamedObject_t *no, const char name[static 1],
       else if (strncmp (curr_line, "vt", 2) == 0)
         {
           printf ("%s", curr_line + 3);
-          break;
+        }
+      else if (curr_line[0] == 'f')
+        {
+          Face_t f = fc_init (curr_line + 2, verts, norms);
+          fc_print (&f);
+          // tmp, remove me!
+          continue;
+          if (f.num_points == 3)
+            puts ("foo");
+        }
+      else if (curr_line[0] == 's')
+        {
+          smoothShading = (curr_line[2] == '1');
         }
       else if (curr_line[0] == 'v')
         {
@@ -86,9 +99,15 @@ no_init (NamedObject_t *no, const char name[static 1],
           if (dyna_append (verts, (void *)&v) != 0)
             goto append_failure;
         }
-      else if (curr_line[0] == 's')
+      else if (curr_line[0] == 'o')
         {
-          smoothShading = (curr_line[3] == '0');
+          char *last_char = &curr_line[strlen (curr_line) - 1];
+          while (last_char >= curr_line)
+            {
+              ungetc (*last_char, input_fptr);
+              last_char -= 1;
+            }
+          break;
         }
       else
         {
@@ -97,18 +116,37 @@ no_init (NamedObject_t *no, const char name[static 1],
         }
     }
 
-  dyna_free (norms);
-  dyna_free (verts);
-  return 0;
-append_failure:
-  fprintf (stderr, "%s: append failed.\n", __func__);
-err_exit:
+  puts ("Broke out!");
 
+  puts ("Verts:");
+  dyna_print (verts, &v3_print);
+  puts ("Norms:");
+  dyna_print (norms, &v3_print);
+
+  /*
   printf ("Smooth shading? %s\n", smoothShading ? "true" : "false");
   puts ("Verts:");
   dyna_print (verts, &v3_print);
   puts ("Norms:");
   dyna_print (norms, &v3_print);
+  */
+
+  dyna_free (norms);
+  dyna_free (verts);
+  return 0;
+  // tmp, remove me!
+  printf ("Smooth shading? %s\n", smoothShading ? "true" : "false");
+append_failure:
+  fprintf (stderr, "%s: append failed.\n", __func__);
+err_exit:
+
+  /*
+  printf ("Smooth shading? %s\n", smoothShading ? "true" : "false");
+  puts ("Verts:");
+  dyna_print (verts, &v3_print);
+  puts ("Norms:");
+  dyna_print (norms, &v3_print);
+  */
 
   dyna_free (norms);
   dyna_free (verts);

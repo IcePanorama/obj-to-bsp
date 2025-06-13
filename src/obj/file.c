@@ -45,7 +45,7 @@ append_object (WavefrontObj_t *obj, const char name[static 1],
       return -1;
     }
 
-  no_print (o);
+  // no_print (o);
   no_free (o);
   return 0;
   obj_free (obj);
@@ -88,6 +88,7 @@ obj_init (WavefrontObj_t *obj, const char path[static 1])
                    line[0], line);
           goto err_exit;
         }
+      break;
     }
 
   fclose (obj_fptr);

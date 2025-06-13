@@ -26,6 +26,7 @@ add_compile_options(
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
     "${SRC_DIR}/obj/file.c"
+    "${SRC_DIR}/obj/face.c"
     "${SRC_DIR}/obj/object.c"
     "${SRC_DIR}/obj/vert_coords.c"
     "${SRC_DIR}/obj/normal.c"
@@ -37,6 +38,7 @@ set(SRC_FILES
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
     "${INCL_DIR}/obj/file.h"
+    "${INCL_DIR}/obj/face.h"
     "${INCL_DIR}/obj/object.h"
     "${INCL_DIR}/obj/vert_coords.h"
     "${INCL_DIR}/obj/normal.h"
