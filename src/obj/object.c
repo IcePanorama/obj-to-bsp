@@ -13,8 +13,10 @@ struct NamedObject_s
 {
   char *name;
   DynamicArray_t *faces;
+  // FIXME: needs to be moved to `Face_t`!
   bool smooth_shading;
 };
+const size_t NO_SIZE_BYTES = sizeof (NamedObject_t);
 
 NamedObject_t *
 no_alloc (void)
@@ -128,10 +130,14 @@ append_failure:
 }
 
 void
-no_print (NamedObject_t *no)
+no_print (void *no)
 {
-  printf ("Name: %s\n", no->name);
-  printf ("Smooth shading? %s\n", no->smooth_shading ? "Yes" : "No");
+  if (no == NULL)
+    return;
+
+  NamedObject_t *o = (NamedObject_t *)no;
+  printf ("Name: %s\n", o->name);
+  printf ("Smooth shading? %s\n", o->smooth_shading ? "Yes" : "No");
   puts ("Faces: ");
-  dyna_print (no->faces, fc_print);
+  dyna_print (o->faces, fc_print);
 }

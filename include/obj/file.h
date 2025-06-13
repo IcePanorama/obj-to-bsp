@@ -18,5 +18,6 @@ void obj_free (WavefrontObj_t *obj);
 
 /** Param:  path  a NULL-terminated path string to some wavefront obj file. */
 int obj_init (WavefrontObj_t *obj, const char path[static 1]);
+void obj_print (WavefrontObj_t *obj);
 
 #endif /* _WAVEFRONT_OBJ_FILE_H_ */

@@ -13,6 +13,7 @@ struct WavefrontObj_s
   char *filename;
   DynamicArray_t *verts;
   DynamicArray_t *norms;
+  DynamicArray_t *objs;
 };
 
 WavefrontObj_t *
@@ -24,7 +25,8 @@ obj_alloc (void)
 
   out->verts = dyna_alloc (sizeof (VertCoord_t));
   out->norms = dyna_alloc (sizeof (Normal_t));
-  if ((out->verts == NULL) || (out->norms == NULL))
+  out->objs = dyna_alloc (NO_SIZE_BYTES);
+  if ((out->verts == NULL) || (out->norms == NULL) || (out->objs == NULL))
     {
       obj_free (out);
       return NULL;
@@ -46,6 +48,8 @@ obj_free (WavefrontObj_t *obj)
     dyna_free (obj->verts);
   if (obj->norms != NULL)
     dyna_free (obj->norms);
+  if (obj->objs != NULL)
+    dyna_free (obj->objs);
 
   free (obj);
 }
@@ -62,15 +66,20 @@ append_object (WavefrontObj_t *obj, const char name[static 1],
     }
 
   if (no_init (o, name, input_fptr, obj->verts, obj->norms) != 0)
+    goto err_exit;
+
+  if (dyna_append (obj->objs, o) != 0)
     {
-      no_free (o);
-      return -1;
+      fprintf (stderr, "Error appending named object to file %s.\n",
+               obj->filename);
+      goto err_exit;
     }
 
-  no_print (o);
   no_free (o);
   return 0;
-  obj_free (obj);
+err_exit:
+  no_free (o);
+  return -1;
 }
 
 int
@@ -113,9 +122,24 @@ obj_init (WavefrontObj_t *obj, const char path[static 1])
         }
     }
 
+  obj_print (obj);
+
   fclose (obj_fptr);
   return 0;
 err_exit:
   fclose (obj_fptr);
   return -1;
+}
+
+void
+obj_print (WavefrontObj_t *obj)
+{
+  if (obj == NULL)
+    return;
+
+  printf ("Wavefront object file: %s\n", obj->filename);
+  printf ("%zu objects, %zu vertices, %zu normals\n",
+          dyna_get_size (obj->objs), dyna_get_size (obj->verts),
+          dyna_get_size (obj->norms));
+  dyna_print (obj->objs, no_print);
 }
