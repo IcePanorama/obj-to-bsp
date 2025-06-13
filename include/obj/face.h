@@ -17,6 +17,6 @@ typedef struct Face_s
 Face_t fc_init (char raw_data[static 1], DynamicArray_t *verts,
                 DynamicArray_t *norms);
 
-void fc_print (Face_t f[static 1]);
+void fc_print (void *f);
 
 #endif /* _WAVEFRONT_OBJ_FACE_H_ */

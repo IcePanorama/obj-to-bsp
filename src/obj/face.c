@@ -16,7 +16,6 @@ fc_init (char raw_data[static 1], DynamicArray_t *verts, DynamicArray_t *norms)
   assert (norms != NULL);
   Face_t f = { 0 };
 
-  printf ("Raw: %s", raw_data);
   size_t curr_vert = 0;
   size_t curr_norm = 0;
   char *tok = strtok (raw_data, " \n");
@@ -52,17 +51,21 @@ fc_init (char raw_data[static 1], DynamicArray_t *verts, DynamicArray_t *norms)
 }
 
 void
-fc_print (Face_t f[static 1])
+fc_print (void *f)
 {
-  printf ("Tri or quad? %s\n", (f->num_points == 3) ? "tri" : "quad");
+  if (f == NULL)
+    return;
+
+  Face_t *face = (Face_t *)f;
+  printf ("Tri or quad? %s\n", (face->num_points == 3) ? "tri" : "quad");
   puts ("Vertices:");
-  for (size_t i = 0; i < f->num_points; i++)
+  for (size_t i = 0; i < face->num_points; i++)
     {
-      v3_print (&f->vertices[i]);
+      v3_print (&face->vertices[i]);
     }
   puts ("Normals");
-  for (size_t i = 0; i < f->num_points; i++)
+  for (size_t i = 0; i < face->num_points; i++)
     {
-      v3_print (&f->normals[i]);
+      v3_print (&face->normals[i]);
     }
 }

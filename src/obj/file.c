@@ -1,5 +1,8 @@
 #include "obj/file.h"
+#include "dynamic_arr.h"
+#include "obj/normal.h"
 #include "obj/object.h"
+#include "obj/vert_coords.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,12 +11,26 @@
 struct WavefrontObj_s
 {
   char *filename;
+  DynamicArray_t *verts;
+  DynamicArray_t *norms;
 };
 
 WavefrontObj_t *
 obj_alloc (void)
 {
-  return calloc (1, sizeof (WavefrontObj_t));
+  WavefrontObj_t *out = calloc (1, sizeof (WavefrontObj_t));
+  if (out == NULL)
+    return NULL;
+
+  out->verts = dyna_alloc (sizeof (VertCoord_t));
+  out->norms = dyna_alloc (sizeof (Normal_t));
+  if ((out->verts == NULL) || (out->norms == NULL))
+    {
+      obj_free (out);
+      return NULL;
+    }
+
+  return out;
 }
 
 void
@@ -24,6 +41,11 @@ obj_free (WavefrontObj_t *obj)
 
   if (obj->filename != NULL)
     free (obj->filename);
+
+  if (obj->verts != NULL)
+    dyna_free (obj->verts);
+  if (obj->norms != NULL)
+    dyna_free (obj->norms);
 
   free (obj);
 }
@@ -39,13 +61,13 @@ append_object (WavefrontObj_t *obj, const char name[static 1],
       return -1;
     }
 
-  if (no_init (o, name, input_fptr) != 0)
+  if (no_init (o, name, input_fptr, obj->verts, obj->norms) != 0)
     {
       no_free (o);
       return -1;
     }
 
-  // no_print (o);
+  no_print (o);
   no_free (o);
   return 0;
   obj_free (obj);
@@ -75,9 +97,10 @@ obj_init (WavefrontObj_t *obj, const char path[static 1])
       char line[256];
       if (fgets (line, 256, obj_fptr) == NULL)
         goto err_exit;
+
       switch (line[0])
         {
-        case '#':
+        case '#': // Skip comments
           continue;
         case 'o':
           if (append_object (obj, line + 2, obj_fptr) != 0)
@@ -88,7 +111,6 @@ obj_init (WavefrontObj_t *obj, const char path[static 1])
                    line[0], line);
           goto err_exit;
         }
-      break;
     }
 
   fclose (obj_fptr);
