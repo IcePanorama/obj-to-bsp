@@ -2,6 +2,15 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#define OOM_ERR()                                                             \
+  do                                                                          \
+    {                                                                         \
+      fprintf (stderr, "%s: Out of memory error.\n", __func__);               \
+    }                                                                         \
+  while (0);
+
 /*
 #include "dynamic_arr.h"
 #include "log.h"
@@ -315,18 +324,47 @@ process_faces (ObjFile_t o[static 1], FILE fptr[static 1])
 }
 */
 
+int
+process_file (ObjFile_t o[static 1])
+{
+  FILE *fptr = fopen (o->path, "r");
+  if (!fptr)
+    {
+      fprintf (stderr, "%s: Error opening file: %s\n", __func__, o->path);
+      return -1;
+    }
+
+  // LO: Reimplement file parsing.
+
+  fclose (fptr);
+  return 0;
+}
+
 ObjFile_t *
 obj_alloc (char path[static 1])
 {
   ObjFile_t *o = calloc (1, sizeof (ObjFile_t));
-  if (o == NULL)
+  if (!o)
     {
-      fprintf (stderr, "%s: Out of memory error.", __func__);
+      OOM_ERR ();
+      return NULL;
+    }
+
+  o->path = strdup (path);
+  if (!o->path)
+    {
+      OOM_ERR ();
+      obj_free (o);
+      return NULL;
+    }
+
+  if (process_file (o) != 0)
+    {
+      obj_free (o);
       return NULL;
     }
 
   return o;
-  printf (path);
   /*
 FILE *fptr = fopen (file_path, "r");
 if (fptr == NULL)
@@ -353,6 +391,12 @@ obj_free (ObjFile_t *o)
   if (o == NULL)
     return;
 
+  if (o->path)
+    free (o->path);
+  o->path = NULL;
+
+  free (o);
+  o = NULL;
   /*
   if (o->vertices_list != NULL)
     dyna_free (o->vertices_list);
@@ -365,7 +409,6 @@ obj_free (ObjFile_t *o)
   if (o->faces_list != NULL)
     dyna_free (o->faces_list);
     */
-  free (o);
 }
 
 /*
