@@ -36,10 +36,12 @@ endif ()
 set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
 set(SRC_FILES
     "${SRC_DIR}/main.c"
+    "${SRC_DIR}/obj/file.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
 set(INCL_FILES
+    "${INCL_DIR}/obj/file.h"
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
@@ -62,7 +64,7 @@ endif ()
 find_program(VALGRIND NAMES valgrind)
 if (VALGRIND AND (NOT WIN32))
     add_custom_target(leak_check
-        COMMAND ${VALGRIND} --leak-check=yes ./${PROJECT_NAME}
+        COMMAND ${VALGRIND} --leak-check=yes ./${PROJECT_NAME} test.obj
         WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
         COMMENT "Running valgrind leak check on executable."
     )

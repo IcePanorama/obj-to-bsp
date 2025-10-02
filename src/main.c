@@ -6,12 +6,12 @@
 /*
 #include "log.h"
 #include "bsp_tree/tree.h"
-#include "obj/file.h"
 #include "utils.h"
 
 #include <stdint.h>
 #include <string.h>
 */
+#include "obj/file.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,6 +27,12 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
+  ObjFile_t *obj = obj_alloc (argv[1]);
+  if (obj == NULL)
+    return EXIT_FAILURE;
+
+  obj_free (obj);
+  return EXIT_SUCCESS;
   /*
   // FIXME: assuming argv[1] is an obj file for the time being.
   ObjFile_t *obj = obj_create (argv[1]);

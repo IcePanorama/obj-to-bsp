@@ -1,4 +1,8 @@
 #include "obj/file.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+/*
 #include "dynamic_arr.h"
 #include "log.h"
 #include "obj/face.h"
@@ -7,18 +11,22 @@
 #include "obj/vertex_coord.h"
 #include "obj/vertex_norm.h"
 
-#include <stdlib.h>
 #include <string.h>
+*/
 
 struct ObjFile_s
 {
-  DynamicArray_t *vertices_list;
-  DynamicArray_t *texture_coords_list;
-  DynamicArray_t *vertex_normals_list;
-  DynamicArray_t *parameter_space_vertices_list;
-  DynamicArray_t *faces_list;
+  char *path;
+  /*
+DynamicArray_t *vertices_list;
+DynamicArray_t *texture_coords_list;
+DynamicArray_t *vertex_normals_list;
+DynamicArray_t *parameter_space_vertices_list;
+DynamicArray_t *faces_list;
+*/
 };
 
+/*
 static int
 process_new_vertex_norm (ObjFile_t *o, const char *input)
 {
@@ -226,7 +234,7 @@ process_new_face (ObjFile_t *o, const char *input)
             }
 
           num_parts++;
-          /** If optional texture coords not provided, skip. */
+          ** If optional texture coords not provided, skip. *
           if ((idx + strlen (idx) + 1)[0] == '/')
             num_parts++;
           idx = strtok (NULL, "/");
@@ -305,34 +313,38 @@ process_faces (ObjFile_t o[static 1], FILE fptr[static 1])
 
   return 0;
 }
+*/
 
 ObjFile_t *
-obj_create (const char file_path[static 1])
+obj_alloc (char path[static 1])
 {
-  FILE *fptr = fopen (file_path, "r");
-  if (fptr == NULL)
+  ObjFile_t *o = calloc (1, sizeof (ObjFile_t));
+  if (o == NULL)
     {
-      LOG_ERROR ("Unable to open file, %s.\n", file_path);
+      fprintf (stderr, "%s: Out of memory error.", __func__);
       return NULL;
     }
 
-  ObjFile_t *obj = calloc (1, sizeof (ObjFile_t));
-  if (obj == NULL)
-    {
-      LOG_ERROR_MSG ("Unable to allocate memory for OBJ file.\n");
-      return NULL;
-    }
+  return o;
+  printf (path);
+  /*
+FILE *fptr = fopen (file_path, "r");
+if (fptr == NULL)
+  {
+    LOG_ERROR ("Unable to open file, %s.\n", file_path);
+    return NULL;
+  }
 
-  if ((process_verts_txt_coords (obj, fptr) != 0)
-      || (process_faces (obj, fptr) != 0))
-    {
-      free (obj);
-      fclose (fptr);
-      return NULL;
-    }
+if ((process_verts_txt_coords (obj, fptr) != 0)
+    || (process_faces (obj, fptr) != 0))
+  {
+    free (obj);
+    fclose (fptr);
+    return NULL;
+  }
 
-  fclose (fptr);
-  return obj;
+fclose (fptr);
+*/
 }
 
 void
@@ -341,6 +353,7 @@ obj_free (ObjFile_t *o)
   if (o == NULL)
     return;
 
+  /*
   if (o->vertices_list != NULL)
     dyna_free (o->vertices_list);
   if (o->texture_coords_list != NULL)
@@ -351,9 +364,11 @@ obj_free (ObjFile_t *o)
     dyna_free (o->parameter_space_vertices_list);
   if (o->faces_list != NULL)
     dyna_free (o->faces_list);
+    */
   free (o);
 }
 
+/*
 int
 obj_calc_centroid (ObjFile_t *o, float centroid[static 4])
 {
@@ -510,3 +525,4 @@ obj_calc_covar_mat_w_centroid (ObjFile_t *o, float c[static 4],
 
   return 0;
 }
+*/

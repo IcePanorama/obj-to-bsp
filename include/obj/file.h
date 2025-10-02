@@ -1,11 +1,11 @@
 #ifndef _WAVEFRONT_OBJ_FILE_H_
 #define _WAVEFRONT_OBJ_FILE_H_
 
-#include "dynamic_arr.h"
+// #include "dynamic_arr.h"
 
 typedef struct ObjFile_s ObjFile_t;
 
-ObjFile_t *obj_create (const char file_path[static 1]);
+ObjFile_t *obj_alloc (char path[static 1]);
 void obj_free (ObjFile_t *o);
 
 /**
@@ -15,8 +15,8 @@ void obj_free (ObjFile_t *o);
  *  + Forward Axis: Y
  *  + Up Axis: Z
  *  Returns: Zero on success, non-zero on failure.
- */
 int obj_calc_centroid (ObjFile_t *o, float centroid[static 4]);
+ */
 
 /**
  *  Calculates covariance matrix from OBJ file and centroid.
@@ -41,10 +41,10 @@ int obj_calc_centroid (ObjFile_t *o, float centroid[static 4]);
  *  See: https://www.geeksforgeeks.org/covariance-matrix/
  *  See: `obj_calc_centroid`.
  *  Returns: zero on success, non-zero on failure.
- */
 int obj_calc_covar_mat_w_centroid (ObjFile_t *o, float c[static 4],
                                    float output[16]);
 
 DynamicArray_t *obj_get_faces_list (ObjFile_t *o);
+*/
 
 #endif /* _WAVEFRONT_OBJ_FILE_H_ */
