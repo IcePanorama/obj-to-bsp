@@ -21,8 +21,7 @@ main (int argc, char **argv)
 {
   if (argc < 2)
     {
-      // LOG_ERROR ("Improper usage error.\n\ttry: %s path/to/file.obj\n",
-      // argv[0]);
+      // TODO: make usage cmd line arg
       fprintf (stderr, "Improper usage error.\n\ttry: %s path/to/file.obj\n",
                argv[0]);
       return EXIT_FAILURE;
