@@ -3,32 +3,37 @@
  *  while I'm figuring everything out, but I'll come back and clean it all back
  *  up at some later point.
  */
-#include "bsp_tree/tree.h"
+/*
 #include "log.h"
+#include "bsp_tree/tree.h"
 #include "obj/file.h"
 #include "utils.h"
 
 #include <stdint.h>
+#include <string.h>
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 int
 main (int argc, char **argv)
 {
   if (argc < 2)
     {
-      LOG_ERROR ("Improper usage error.\n\ttry: %s path/to/file.obj\n",
-                 argv[0]);
+      // LOG_ERROR ("Improper usage error.\n\ttry: %s path/to/file.obj\n",
+      // argv[0]);
+      fprintf (stderr, "Improper usage error.\n\ttry: %s path/to/file.obj\n",
+               argv[0]);
       return EXIT_FAILURE;
     }
 
+  /*
   // FIXME: assuming argv[1] is an obj file for the time being.
   ObjFile_t *obj = obj_create (argv[1]);
   if (obj == NULL)
     return EXIT_FAILURE;
 
-  /**
    *  NOTE: The calculations required to traverse a tree split in this manner
    *  may be too expensive for platforms with constrained hardware. May be
    *  worth exploring other splitting methods in the future.
@@ -37,7 +42,6 @@ main (int argc, char **argv)
    *  could build a BSP tree for each x-, y-, and z-axis aligned normal (as
    *  well as their negative counterparts), and then select the tree which is
    *  the shortest as our output.
-   */
   float centroid[4] = { 0 };
   obj_calc_centroid (obj, centroid);
   LOG_DEBUG_INFO ("Centroid: (%f, %f, %f, %f)\n", centroid[0], centroid[1],
@@ -85,4 +89,5 @@ main (int argc, char **argv)
 err_exit:
   obj_free (obj);
   return EXIT_FAILURE;
+  */
 }
