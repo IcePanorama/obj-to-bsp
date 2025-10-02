@@ -9,7 +9,7 @@
     {                                                                         \
       fprintf (stderr, "%s: Out of memory error.\n", __func__);               \
     }                                                                         \
-  while (0);
+  while (0)
 
 /*
 #include "dynamic_arr.h"
