@@ -43,7 +43,6 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
         {
           if (l)
             free (l);
-          l = NULL;
           break;
         }
       // ignoring comments, tex coords, shading
@@ -64,7 +63,6 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
           if (process_vertex_coord (o, l + 2) != 0)
             {
               free (l);
-              l = NULL;
               return -1;
             }
         }
@@ -72,7 +70,6 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
         {
           printf ("%s", l);
           free (l);
-          l = NULL;
           break;
         }
 
@@ -132,6 +129,7 @@ objo_free (_OBJObj_t *o)
   o->verts = NULL;
 
   free (o);
+  o = NULL;
 }
 
 size_t

@@ -48,6 +48,7 @@ objv_free (_OBJVertexCoord_t *v)
     return;
 
   free (v);
+  v = NULL;
 }
 
 size_t

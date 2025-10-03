@@ -31,7 +31,6 @@ process_file (ObjFile_t o[static 1])
         {
           if (l)
             free (l);
-          l = NULL;
           break;
         }
       else if (l[0] == '#')
@@ -43,7 +42,6 @@ process_file (ObjFile_t o[static 1])
             goto loop_err_exit;
 
           objo_free (curr_o);
-          curr_o = NULL;
         }
       else
         {
@@ -53,6 +51,8 @@ process_file (ObjFile_t o[static 1])
 
       free (l);
       l = NULL;
+      l_size = 0;
+      // tmp
       break;
     }
 
@@ -60,7 +60,6 @@ process_file (ObjFile_t o[static 1])
   return 0;
 loop_err_exit:
   free (l);
-  l = NULL;
   fclose (fptr);
   return -1;
 }
