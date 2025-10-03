@@ -1,15 +1,11 @@
 #include "obj/file.h"
+#include "dyna.h"
+#include "obj/errors.h"
+#include "obj/obj.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-#define OOM_ERR()                                                             \
-  do                                                                          \
-    {                                                                         \
-      fprintf (stderr, "%s: Out of memory error.\n", __func__);               \
-    }                                                                         \
-  while (0)
 
 /*
 #include "dynamic_arr.h"
@@ -26,13 +22,7 @@
 struct ObjFile_s
 {
   char *path;
-  /*
-DynamicArray_t *vertices_list;
-DynamicArray_t *texture_coords_list;
-DynamicArray_t *vertex_normals_list;
-DynamicArray_t *parameter_space_vertices_list;
-DynamicArray_t *faces_list;
-*/
+  DynamicArr_t *objs;
 };
 
 /*
@@ -324,93 +314,6 @@ process_faces (ObjFile_t o[static 1], FILE fptr[static 1])
 }
 */
 
-int
-process_file (ObjFile_t o[static 1])
-{
-  FILE *fptr = fopen (o->path, "r");
-  if (!fptr)
-    {
-      fprintf (stderr, "%s: Error opening file: %s\n", __func__, o->path);
-      return -1;
-    }
-
-  // LO: Reimplement file parsing.
-
-  fclose (fptr);
-  return 0;
-}
-
-ObjFile_t *
-obj_alloc (char path[static 1])
-{
-  ObjFile_t *o = calloc (1, sizeof (ObjFile_t));
-  if (!o)
-    {
-      OOM_ERR ();
-      return NULL;
-    }
-
-  o->path = strdup (path);
-  if (!o->path)
-    {
-      OOM_ERR ();
-      obj_free (o);
-      return NULL;
-    }
-
-  if (process_file (o) != 0)
-    {
-      obj_free (o);
-      return NULL;
-    }
-
-  return o;
-  /*
-FILE *fptr = fopen (file_path, "r");
-if (fptr == NULL)
-  {
-    LOG_ERROR ("Unable to open file, %s.\n", file_path);
-    return NULL;
-  }
-
-if ((process_verts_txt_coords (obj, fptr) != 0)
-    || (process_faces (obj, fptr) != 0))
-  {
-    free (obj);
-    fclose (fptr);
-    return NULL;
-  }
-
-fclose (fptr);
-*/
-}
-
-void
-obj_free (ObjFile_t *o)
-{
-  if (o == NULL)
-    return;
-
-  if (o->path)
-    free (o->path);
-  o->path = NULL;
-
-  free (o);
-  o = NULL;
-  /*
-  if (o->vertices_list != NULL)
-    dyna_free (o->vertices_list);
-  if (o->texture_coords_list != NULL)
-    dyna_free (o->texture_coords_list);
-  if (o->vertex_normals_list != NULL)
-    dyna_free (o->vertex_normals_list);
-  if (o->parameter_space_vertices_list != NULL)
-    dyna_free (o->parameter_space_vertices_list);
-  if (o->faces_list != NULL)
-    dyna_free (o->faces_list);
-    */
-}
-
 /*
 int
 obj_calc_centroid (ObjFile_t *o, float centroid[static 4])
@@ -569,3 +472,112 @@ obj_calc_covar_mat_w_centroid (ObjFile_t *o, float c[static 4],
   return 0;
 }
 */
+
+int
+process_file (ObjFile_t o[static 1])
+{
+  FILE *fptr = fopen (o->path, "r");
+  if (!fptr)
+    {
+      fprintf (stderr, "%s: Error opening file: %s\n", __func__, o->path);
+      return -1;
+    }
+
+  // LO: Reimplement file parsing.
+  char *l = NULL;
+  size_t l_size = 0;
+  while ((getline (&l, &l_size, fptr)) != -1)
+    {
+      if (l_size == 0)
+        {
+          if (l)
+            free (l);
+          l = NULL;
+          break;
+        }
+      else if (l[0] == '#')
+        continue;
+      else if (strncmp (l, "o ", 2) == 0)
+        {
+          _OBJObj_t *curr_o = objo_alloc (l + 2, fptr);
+          if (!curr_o)
+            goto loop_err_exit;
+
+          objo_free (curr_o);
+          curr_o = NULL;
+        }
+      else
+        {
+          fprintf (stderr, "Malformed input: %s", l);
+          goto loop_err_exit;
+        }
+
+      free (l);
+      l = NULL;
+      break;
+    }
+
+  fclose (fptr);
+  return 0;
+loop_err_exit:
+  free (l);
+  l = NULL;
+  fclose (fptr);
+  return -1;
+}
+
+ObjFile_t *
+obj_alloc (char path[static 1])
+{
+  ObjFile_t *o = calloc (1, sizeof (ObjFile_t));
+  if (!o)
+    {
+      WAVOBJ_OOM_ERR ();
+      return NULL;
+    }
+
+  o->objs = DynA_alloc (objo_size ());
+  if (!o->objs)
+    {
+      WAVOBJ_OOM_ERR ();
+      obj_free (o);
+      o = NULL;
+      return NULL;
+    }
+
+  o->path = strdup (path);
+  if (!o->path)
+    {
+      WAVOBJ_OOM_ERR ();
+      obj_free (o);
+      o = NULL;
+      return NULL;
+    }
+
+  if (process_file (o) != 0)
+    {
+      obj_free (o);
+      o = NULL;
+      return NULL;
+    }
+
+  return o;
+}
+
+void
+obj_free (ObjFile_t *o)
+{
+  if (o == NULL)
+    return;
+
+  if (o->path)
+    free (o->path);
+  o->path = NULL;
+
+  if (o->objs)
+    DynA_free (o->objs);
+  o->objs = NULL;
+
+  free (o);
+  o = NULL;
+}
