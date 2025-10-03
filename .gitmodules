@@ -1,0 +1,3 @@
+[submodule "lib/DynA"]
+	path = lib/DynA
+	url = https://github.com/IcePanorama/DynA.git
