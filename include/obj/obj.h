@@ -2,6 +2,8 @@
 #ifndef _WAVEFRONT_OBJ_OBJECTS_H_
 #define _WAVEFRONT_OBJ_OBJECTS_H_
 
+#include "dyna.h"
+
 #include <stdio.h>
 
 typedef struct _OBJObj_s _OBJObj_t;
@@ -11,5 +13,7 @@ void objo_free (_OBJObj_t *o);
 
 /** Returns the size in bytes of `_OBJObj_t`. */
 size_t objo_size (void);
+
+DynamicArr_t *objo_get_faces (_OBJObj_t *o);
 
 #endif /* _WAVEFRONT_OBJ_OBJECTS_H_ */

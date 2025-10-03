@@ -129,3 +129,12 @@ obj_free (OBJFile_t *o)
   free (o);
   o = NULL;
 }
+
+DynamicArr_t *
+obj_get_objs (OBJFile_t *o)
+{
+  if ((!o) || (!o->objs))
+    return NULL;
+
+  return o->objs;
+}

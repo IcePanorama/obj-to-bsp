@@ -64,7 +64,6 @@ objf_free (_OBJFace_t *f)
   f = NULL;
 }
 
-/** Returns the size of `_OBJFace_t` in bytes. */
 size_t
 objf_size (void)
 {

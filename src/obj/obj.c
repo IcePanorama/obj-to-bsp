@@ -23,7 +23,7 @@ process_vertex_coord (_OBJObj_t *o, char *l)
   if (!v)
     return -1;
 
-  if (DynA_append (o->verts, &v) != 0)
+  if (DynA_append (o->verts, v) != 0)
     {
       objv_free (v);
       return -1;
@@ -168,4 +168,13 @@ size_t
 objo_size (void)
 {
   return sizeof (_OBJObj_t);
+}
+
+DynamicArr_t *
+objo_get_faces (_OBJObj_t *o)
+{
+  if ((!o) || (!o->faces))
+    return NULL;
+
+  return o->faces;
 }
