@@ -51,8 +51,13 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
           l = NULL;
           break;
         }
-      else if (l[0] == '#')
-        goto loop_end;
+
+      // ignoring comments, tex coords, shading
+      if ((l[0] == '#') || (strncmp (l, "s ", 2) == 0)
+          || (strncmp (l, "vt ", 3) == 0))
+        {
+          goto loop_end;
+        }
       else if (strncmp (l, "v ", 2) == 0)
         {
           if (process_vertex_coord (o, l + 2) != 0)
@@ -62,8 +67,6 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
               return -1;
             }
         }
-      else if (strncmp (l, "vt ", 3) == 0) // ignoring text coords for now
-        goto loop_end;
       else
         {
           printf ("%s", l);
