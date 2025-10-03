@@ -13,6 +13,23 @@ struct ObjFile_s
   DynamicArr_t *objs;
 };
 
+static int
+process_object (ObjFile_t *o, FILE *fptr, char *input)
+{
+  _OBJObj_t *obj = objo_alloc (input, fptr);
+  if (!obj)
+    return -1;
+
+  if (DynA_append (o->objs, obj) != 0)
+    {
+      objo_free (obj);
+      return -1;
+    }
+
+  objo_free (obj);
+  return 0;
+}
+
 int
 process_file (ObjFile_t o[static 1])
 {
@@ -28,19 +45,13 @@ process_file (ObjFile_t o[static 1])
   while ((getline (&l, &l_size, fptr)) != -1)
     {
       if (l_size == 0)
-        {
-          free (l);
-          break;
-        }
+        break;
       else if (l[0] == '#')
         continue;
       else if (strncmp (l, "o ", 2) == 0)
         {
-          _OBJObj_t *curr_o = objo_alloc (l + 2, fptr);
-          if (!curr_o)
+          if (process_object (o, fptr, l + 2) != 0)
             goto loop_err_exit;
-
-          objo_free (curr_o);
         }
       else
         {
@@ -51,10 +62,10 @@ process_file (ObjFile_t o[static 1])
       free (l);
       l = NULL;
       l_size = 0;
-      // tmp
-      break;
     }
 
+  if (l)
+    free (l);
   fclose (fptr);
   return 0;
 loop_err_exit:
