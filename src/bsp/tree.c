@@ -8,7 +8,7 @@ struct BSPTree_s
 };
 
 BSPTree_t *
-bsp_alloc (ObjFile_t *o)
+bsp_alloc (OBJFile_t *o)
 {
   return NULL;
   (void)o;

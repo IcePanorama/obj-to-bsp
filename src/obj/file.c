@@ -7,14 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct ObjFile_s
+struct OBJFile_s
 {
   char *path;
   DynamicArr_t *objs;
 };
 
 static int
-process_object (ObjFile_t *o, FILE *fptr, char *input)
+process_object (OBJFile_t *o, FILE *fptr, char *input)
 {
   _OBJObj_t *obj = objo_alloc (input, fptr);
   if (!obj)
@@ -31,7 +31,7 @@ process_object (ObjFile_t *o, FILE *fptr, char *input)
 }
 
 int
-process_file (ObjFile_t o[static 1])
+process_file (OBJFile_t o[static 1])
 {
   FILE *fptr = fopen (o->path, "r");
   if (!fptr)
@@ -74,10 +74,10 @@ loop_err_exit:
   return -1;
 }
 
-ObjFile_t *
+OBJFile_t *
 obj_alloc (char path[static 1])
 {
-  ObjFile_t *o = calloc (1, sizeof (ObjFile_t));
+  OBJFile_t *o = calloc (1, sizeof (OBJFile_t));
   if (!o)
     {
       WAVOBJ_OOM_ERR ();
@@ -113,7 +113,7 @@ obj_alloc (char path[static 1])
 }
 
 void
-obj_free (ObjFile_t *o)
+obj_free (OBJFile_t *o)
 {
   if (o == NULL)
     return;

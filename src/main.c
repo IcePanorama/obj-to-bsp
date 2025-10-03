@@ -14,7 +14,7 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-  ObjFile_t *obj = obj_alloc (argv[1]);
+  OBJFile_t *obj = obj_alloc (argv[1]);
   if (obj == NULL)
     return EXIT_FAILURE;
 
