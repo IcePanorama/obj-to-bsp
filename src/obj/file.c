@@ -29,8 +29,7 @@ process_file (ObjFile_t o[static 1])
     {
       if (l_size == 0)
         {
-          if (l)
-            free (l);
+          free (l);
           break;
         }
       else if (l[0] == '#')

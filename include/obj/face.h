@@ -5,7 +5,7 @@
 
 typedef struct _OBJFace_s _OBJFace_t;
 
-_OBJFace_t *objf_alloc (void);
+_OBJFace_t *objf_alloc (char input[static 1]);
 void objf_free (_OBJFace_t *f);
 
 /** Returns the size of `_OBJFace_t` in bytes. */
