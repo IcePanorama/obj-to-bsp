@@ -11,29 +11,23 @@ struct _OBJObj_s
 {
   char *name;
   DynamicArr_t *verts;
+  DynamicArr_t *faces;
 };
 
 static int
 process_vertex_coord (_OBJObj_t *o, char *l)
 {
-  float vals[3] = { 0 };
-  size_t i = 0;
-  for (char *ptr = l; ptr && i < 3; i++)
-    {
-      char *end = strchr (ptr, ' ');
-      if (end)
-        *end = '\0';
-      vals[i] = atof (ptr);
-      if (end)
-        ptr = end + 1;
-    }
+  _OBJVertexCoord_t *v = objv_alloc (l);
+  if (!v)
+    return -1;
 
-  _OBJVertexCoord_t v = { .x = vals[0], .y = vals[1], .z = vals[2] };
   if (DynA_append (o->verts, &v) != 0)
     {
+      objv_free (v);
       return -1;
     }
 
+  objv_free (v);
   return 0;
 }
 
@@ -42,6 +36,7 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
 {
   char *l = NULL;
   size_t l_len = 0;
+
   while ((getline (&l, &l_len, fptr)) != -1)
     {
       if (l_len == 0)
@@ -51,14 +46,20 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
           l = NULL;
           break;
         }
-
       // ignoring comments, tex coords, shading
-      if ((l[0] == '#') || (strncmp (l, "s ", 2) == 0)
-          || (strncmp (l, "vt ", 3) == 0))
+      else if ((l[0] == '#') || (strncmp (l, "s ", 2) == 0)
+               || (strncmp (l, "vt ", 3) == 0))
         {
           goto loop_end;
         }
-      else if (strncmp (l, "v ", 2) == 0)
+
+      /*
+      if (strncmp (l, "f ", 2) == 0)
+      {
+      }
+      else
+      */
+      if (strncmp (l, "v ", 2) == 0)
         {
           if (process_vertex_coord (o, l + 2) != 0)
             {
@@ -102,7 +103,7 @@ objo_alloc (char name[static 1], FILE fptr[static 1])
   if (o->name[name_len] == '\n')
     o->name[name_len] = '\0';
 
-  o->verts = DynA_alloc (sizeof (_OBJVertexCoord_t));
+  o->verts = DynA_alloc (objv_size ());
   if (!o->verts)
     goto alloc_err_exit;
 
