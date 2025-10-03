@@ -4,6 +4,7 @@
 #include "obj/face.h"
 #include "obj/vertex_coord.h"
 
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -49,13 +50,24 @@ process_face (_OBJObj_t *o, char *l)
   return 0;
 }
 
+static bool
+peek_next_char_is (FILE *fptr, char exp)
+{
+  char act = fgetc (fptr);
+  bool ret = act == exp;
+  ungetc (act, fptr);
+  return ret;
+}
+
 static int
 process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
 {
   char *l = NULL;
   size_t l_len = 0;
 
-  while ((getline (&l, &l_len, fptr)) != -1)
+  // Need to make sure we don't "get" the first line of another object.
+  while (!(peek_next_char_is (fptr, 'o'))
+         && ((getline (&l, &l_len, fptr)) != -1))
     {
       if (l_len == 0)
         break;
