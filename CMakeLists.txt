@@ -57,6 +57,7 @@ set(INCL_FILES
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
 add_executable(${PROJECT_NAME} ${SRC_FILES})
 target_link_libraries(${PROJECT_NAME} "${PROJECT_SOURCE_DIR}/lib/DynA/libdyna.a")
+target_link_libraries(${PROJECT_NAME} "m")
 
 target_include_directories(${PROJECT_NAME} PRIVATE ${INCL_DIR})
 

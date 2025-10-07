@@ -56,3 +56,30 @@ objv_size (void)
 {
   return sizeof (_OBJVertexCoord_t);
 }
+
+float
+objv_get_x (_OBJVertexCoord_t *v)
+{
+  if (!v)
+    return 0;
+
+  return v->x;
+}
+
+float
+objv_get_y (_OBJVertexCoord_t *v)
+{
+  if (!v)
+    return 0;
+
+  return v->y;
+}
+
+float
+objv_get_z (_OBJVertexCoord_t *v)
+{
+  if (!v)
+    return 0;
+
+  return v->z;
+}

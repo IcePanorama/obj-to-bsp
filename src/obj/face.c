@@ -69,3 +69,12 @@ objf_size (void)
 {
   return sizeof (_OBJFace_t);
 }
+
+size_t *
+objf_get_vert_idxs (_OBJFace_t *f)
+{
+  if (!f)
+    return NULL;
+
+  return f->vert_idx;
+}

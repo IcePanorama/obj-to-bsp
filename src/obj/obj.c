@@ -171,6 +171,15 @@ objo_size (void)
 }
 
 DynamicArr_t *
+objo_get_verts (_OBJObj_t *o)
+{
+  if (!o || !o->verts)
+    return NULL;
+
+  return o->verts;
+}
+
+DynamicArr_t *
 objo_get_faces (_OBJObj_t *o)
 {
   if ((!o) || (!o->faces))
