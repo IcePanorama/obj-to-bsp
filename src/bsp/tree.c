@@ -32,7 +32,7 @@ bsp_alloc (OBJFile_t *o)
   for (size_t i = 0; i < n_objs; i++)
     {
       float tmp[3] = { 0 };
-      _OBJObj_t *curr = (_OBJObj_t *)DynA_at (objs, 0);
+      _OBJObj_t *curr = *(_OBJObj_t **)DynA_at (objs, 0);
       calc_centroid (curr, tmp);
       break;
     }

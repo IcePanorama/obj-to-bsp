@@ -20,13 +20,12 @@ process_object (OBJFile_t *o, FILE *fptr, char *input)
   if (!obj)
     return -1;
 
-  if (DynA_append (o->objs, obj) != 0)
+  if (DynA_append (o->objs, &obj) != 0)
     {
       objo_free (obj);
       return -1;
     }
 
-  objo_free (obj);
   return 0;
 }
 
@@ -84,7 +83,8 @@ obj_alloc (char path[static 1])
       return NULL;
     }
 
-  o->objs = DynA_alloc (objo_size ());
+  // Yes, all pointers are the same size, but this is more self-documenting ig
+  o->objs = DynA_alloc (sizeof (_OBJObj_t *));
   if (!o->objs)
     {
       WAVOBJ_OOM_ERR ();
@@ -121,6 +121,10 @@ obj_free (OBJFile_t *o)
   if (o->path)
     free (o->path);
   o->path = NULL;
+
+  size_t nObjs = DynA_get_size (o->objs);
+  for (size_t i = 0; i < nObjs; i++)
+    objo_free (*(_OBJObj_t **)DynA_at (o->objs, i));
 
   if (o->objs)
     DynA_free (o->objs);
