@@ -122,8 +122,8 @@ obj_free (OBJFile_t *o)
     free (o->path);
   o->path = NULL;
 
-  size_t nObjs = DynA_get_size (o->objs);
-  for (size_t i = 0; i < nObjs; i++)
+  size_t n_objs = DynA_get_size (o->objs);
+  for (size_t i = 0; i < n_objs; i++)
     objo_free (*(_OBJObj_t **)DynA_at (o->objs, i));
 
   if (o->objs)
