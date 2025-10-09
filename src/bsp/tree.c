@@ -19,7 +19,7 @@ struct BSPTree_s
  *  function assumes out is of length 3.
  */
 static int
-get_face_verts (_OBJFace_t *f, DynamicArr_t *v, float out[static 1])
+get_face_centroid (_OBJFace_t *f, DynamicArr_t *v, float out[static 1])
 {
   if (!f || !v)
     return -1;
@@ -28,14 +28,18 @@ get_face_verts (_OBJFace_t *f, DynamicArr_t *v, float out[static 1])
 
   for (size_t j = 0; j < 3; j++)
     {
-      _OBJVertexCoord_t *curr_v = (_OBJVertexCoord_t *)DynA_at (v, idx[j]);
-      if (!curr_v)
+      _OBJVertexCoord_t *curr = (_OBJVertexCoord_t *)DynA_at (v, idx[j]);
+      if (!curr)
         return -1;
 
-      out[0] += objv_get_x (curr_v);
-      out[1] += objv_get_y (curr_v);
-      out[2] += objv_get_z (curr_v);
+      out[0] += objv_get_x (curr);
+      out[1] += objv_get_y (curr);
+      out[2] += objv_get_z (curr);
     }
+
+  out[0] /= 3;
+  out[1] /= 3;
+  out[2] /= 3;
 
   return 0;
 }
@@ -57,13 +61,13 @@ calc_face_norm (_OBJFace_t *f, DynamicArr_t *v, float n[static 1])
   float c[3][3] = { 0 };
   for (size_t j = 0; j < 3; j++)
     {
-      _OBJVertexCoord_t *curr_v = (_OBJVertexCoord_t *)DynA_at (v, idx[j]);
-      if (!curr_v)
+      _OBJVertexCoord_t *curr = (_OBJVertexCoord_t *)DynA_at (v, idx[j]);
+      if (!curr)
         return -1;
 
-      c[j][0] = objv_get_x (curr_v);
-      c[j][1] = objv_get_y (curr_v);
-      c[j][2] = objv_get_z (curr_v);
+      c[j][0] = objv_get_x (curr);
+      c[j][1] = objv_get_y (curr);
+      c[j][2] = objv_get_z (curr);
     }
 
   /**
@@ -104,12 +108,8 @@ score_split (float o[static 1], float n[static 1], size_t idx, DynamicArr_t *f,
         return UINT32_MAX;
 
       float end[3] = { 0 };
-      if (get_face_verts (curr, v, end) != 0)
+      if (get_face_centroid (curr, v, end) != 0)
         return UINT32_MAX;
-
-      end[0] /= 3;
-      end[1] /= 3;
-      end[2] /= 3;
 
       float diff[3] = {
         end[0] - o[0],
@@ -149,12 +149,8 @@ find_splitting_plane (_OBJObj_t *o)
         return NULL;
 
       float origin[3] = { 0 };
-      if (get_face_verts (curr, verts, origin) != 0)
+      if (get_face_centroid (curr, verts, origin) != 0)
         return NULL;
-
-      origin[0] /= 3;
-      origin[1] /= 3;
-      origin[2] /= 3;
 
       uint32_t count = score_split (origin, norm, i, faces, verts);
       if (count < min_count)
