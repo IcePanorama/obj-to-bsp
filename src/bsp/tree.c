@@ -9,9 +9,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+struct BSPNode_s
+{
+  float pos[3];
+  float norm[3];
+  struct BSPNode_s *left;
+  struct BSPNode_s *right;
+};
+
 struct BSPTree_s
 {
-  void *tmp;
+  DynamicArr_t *head;
 };
 
 /**
@@ -155,14 +163,12 @@ find_splitting_plane (_OBJObj_t *o)
       uint32_t count = score_split (origin, norm, i, faces, verts);
       if (count < min_count)
         {
-          printf ("New min count: %d\n", count);
-          printf ("Old: %d\n", min_count);
-          printf ("Index: %zu\n", i);
           min_count = count;
           out = curr;
         }
     }
 
+  printf ("Splitting plane preliminary score: %d\n", min_count);
   return out;
 }
 
@@ -173,14 +179,39 @@ bsp_alloc (OBJFile_t *o)
   if (!objs)
     return NULL;
 
-  size_t n_objs = DynA_get_size (objs);
-  for (size_t i = 0; i < n_objs; i++)
+  const size_t N_OBJS = DynA_get_size (objs);
+  for (size_t i = 0; i < N_OBJS; i++)
     {
       _OBJObj_t *curr = *(_OBJObj_t **)DynA_at (objs, i);
 
       _OBJFace_t *splitting_plane = find_splitting_plane (curr);
       if (!splitting_plane)
         return NULL;
+
+      DynamicArr_t *faces = objo_get_faces (curr);
+      DynamicArr_t *verts = objo_get_verts (curr);
+      if ((!faces) || (!verts))
+        return NULL;
+
+      struct BSPNode_s n = { 0 };
+      if ((calc_face_norm (splitting_plane, verts, n.norm) != 0)
+          || (get_face_centroid (splitting_plane, verts, n.pos) != 0))
+        return NULL;
+
+      const size_t N_FACES = DynA_get_size (faces);
+      for (size_t j = 0; j < N_FACES; j++)
+        {
+          _OBJFace_t *curr_f = (_OBJFace_t *)DynA_at (faces, j);
+          (void)curr_f;
+        }
+
+      /**
+       *  TODO: need list of faces totally behind or totally in front of us
+       *  then, for faces that we intersect, we need to split them so that the
+       *  results from that splitting can neatly go into either the behind or
+       *  "in front" list. After that, rerun this whole process on those two
+       *  groups until we can't do anymore splitting!
+       */
 
       break;
     }
