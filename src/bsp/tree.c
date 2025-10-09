@@ -5,6 +5,7 @@
 
 #include <float.h>
 #include <math.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -35,6 +36,7 @@ get_face_verts (_OBJFace_t *f, DynamicArr_t *v, float *out)
   return 0;
 }
 
+/*
 static int
 calc_obj_centroid (_OBJObj_t *o, float *out)
 {
@@ -72,6 +74,7 @@ calc_obj_centroid (_OBJObj_t *o, float *out)
 
   return 0;
 }
+*/
 
 float
 dist (float x0, float y0, float z0, float x1, float y1, float z1)
@@ -125,7 +128,7 @@ calc_face_norm (_OBJFace_t *f, DynamicArr_t *v, float n[static 1])
 
 // FIXME: need to rename this func
 _OBJFace_t *
-find_centermost_face (_OBJObj_t *o, float c[static 1])
+split_objo (_OBJObj_t *o)
 {
   DynamicArr_t *faces = objo_get_faces (o);
   DynamicArr_t *verts = objo_get_verts (o);
@@ -133,6 +136,7 @@ find_centermost_face (_OBJObj_t *o, float c[static 1])
     return NULL;
 
   _OBJFace_t *out = NULL;
+  uint32_t min_count = UINT32_MAX;
   const size_t N_FACES = DynA_get_size (faces);
   for (size_t i = 0; i < N_FACES; i++)
     {
@@ -144,12 +148,68 @@ find_centermost_face (_OBJObj_t *o, float c[static 1])
       if (calc_face_norm (curr, verts, norm) != 0)
         return NULL;
 
-      printf ("Norm: %f, %f, %f\n", norm[0], norm[1], norm[2]);
-      break;
+      // printf ("Norm: %f, %f, %f\n", norm[0], norm[1], norm[2]);
+
+      float origin[3] = { 0 };
+      if (get_face_verts (curr, verts, origin) != 0)
+        return NULL;
+
+      origin[0] /= 3;
+      origin[1] /= 3;
+      origin[2] /= 3;
+
+      int32_t count = 0;
+      for (size_t j = 0; j < N_FACES; j++)
+        {
+          if (i == j)
+            continue;
+
+          // printf ("i: %zu, j: %zu\n", i, j);
+          _OBJFace_t *tmp = (_OBJFace_t *)DynA_at (faces, j);
+          if (!tmp)
+            return NULL;
+
+          float end[3] = { 0 };
+          if (get_face_verts (tmp, verts, end) != 0)
+            return NULL;
+
+          end[0] /= 3;
+          end[1] /= 3;
+          end[2] /= 3;
+
+          /*
+          printf ("origin: %f, %f, %f\n", origin[0], origin[1], origin[2]);
+          printf ("end: %f, %f, %f\n", end[0], end[1], end[2]);
+          */
+
+          float diff[3] = {
+            end[0] - origin[0],
+            end[1] - origin[1],
+            end[2] - origin[2],
+          };
+          // printf ("diff: %f, %f, %f\n", diff[0], diff[1], diff[2]);
+
+          float dist
+              = norm[0] * diff[0] + norm[1] * diff[1] + norm[2] * diff[2];
+          // printf ("Dist: %f\n", dist);
+
+          if (dist < 0)
+            count -= 1;
+          else
+            count += 1;
+        }
+
+      if (sqrt (count * count) < min_count)
+        {
+          printf ("New min count: %d\n", count);
+          printf ("Old: %d\n", min_count);
+          printf ("Index: %zu\n", i);
+          min_count = count;
+          out = curr;
+        }
     }
 
   return out;
-  (void)c;
 }
 
 BSPTree_t *
@@ -164,13 +224,13 @@ bsp_alloc (OBJFile_t *o)
     {
       _OBJObj_t *curr = *(_OBJObj_t **)DynA_at (objs, i);
 
+      /*
       float c[3] = { 0 };
       if (calc_obj_centroid (curr, c) != 0)
         return NULL;
+        */
 
-      //printf ("Obj centroid: (%f, %f, %f)\n", c[0], c[1], c[2]);
-
-      _OBJFace_t *c_face = find_centermost_face (curr, c);
+      _OBJFace_t *c_face = split_objo (curr);
       if (!c_face)
         return NULL;
 
