@@ -296,7 +296,7 @@ bsp_alloc (OBJFile_t *o)
             }
 
           int orientation = get_face_orientation (&n, verts, tmp);
-          if ((orientation < -3) && (3 < orientation))
+          if ((orientation < -3) || (3 < orientation))
             {
               DynA_free (in_front);
               DynA_free (behind);
