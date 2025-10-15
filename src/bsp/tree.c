@@ -4,18 +4,19 @@
 #include "obj/vertex_coord.h"
 
 #include <float.h>
+#include <limits.h>
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-struct BSPNode_s
+typedef struct BSPNode_s
 {
   float pos[3];
   float norm[3];
   struct BSPNode_s *left;
   struct BSPNode_s *right;
-};
+} BSPNode_t;
 
 struct BSPTree_s
 {
@@ -176,6 +177,49 @@ find_splitting_plane (_OBJObj_t *o)
   return out;
 }
 
+/** Returns `INT_MAX` upon failure. */
+static int
+get_vertex_orientation (BSPNode_t n[static 1], _OBJVertexCoord_t *v)
+{
+  if (!v)
+    return INT_MAX;
+
+  float diff[3] = {
+    objv_get_x (v) - n->pos[0],
+    objv_get_y (v) - n->pos[1],
+    objv_get_z (v) - n->pos[2],
+  };
+
+  return n->norm[0] * diff[0] + n->norm[1] * diff[1] + n->norm[2] * diff[2];
+}
+
+/** Returns value outside the range of [-3, 3] upon failure. */
+static int
+get_face_orientation (BSPNode_t n[static 1], DynamicArr_t *v, _OBJFace_t *f)
+{
+  size_t *vert_idx = objf_get_vert_idxs (f);
+  if (!vert_idx)
+    return INT_MAX;
+
+  int32_t cnt = 0;
+  for (size_t i = 0; i < 3; i++)
+    {
+      _OBJVertexCoord_t *curr = (_OBJVertexCoord_t *)DynA_at (v, vert_idx[i]);
+      if (!curr)
+        return INT_MAX;
+
+      int orientation = get_vertex_orientation (n, curr);
+      if (orientation == INT_MAX)
+        return INT_MAX;
+      else if (orientation < 0)
+        cnt -= 1;
+      else
+        cnt += 1;
+    }
+
+  return cnt;
+}
+
 BSPTree_t *
 bsp_alloc (OBJFile_t *o)
 {
@@ -197,18 +241,11 @@ bsp_alloc (OBJFile_t *o)
       if ((!faces) || (!verts))
         return NULL;
 
-      struct BSPNode_s n = { 0 };
+      BSPNode_t n = { 0 };
       if ((calc_face_norm (splitting_plane, verts, n.norm) != 0)
           || (get_face_centroid (splitting_plane, verts, n.pos) != 0))
         return NULL;
 
-      /**
-       *  TODO: need list of faces totally behind or totally in front of us
-       *  then, for faces that we intersect, we need to split them so that the
-       *  results from that splitting can neatly go into either the behind or
-       *  "in front" list. After that, rerun this whole process on those two
-       *  groups until we can't do anymore splitting!
-       */
       DynamicArr_t *in_front = DynA_alloc (sizeof (_OBJFace_t *));
       DynamicArr_t *behind = DynA_alloc (sizeof (_OBJFace_t *));
       DynamicArr_t *to_split = DynA_alloc (sizeof (_OBJFace_t *));
@@ -232,40 +269,17 @@ bsp_alloc (OBJFile_t *o)
               return NULL;
             }
 
-          size_t *vert_idx = objf_get_vert_idxs (tmp);
-
-          int32_t cnt = 0;
-          for (size_t k = 0; k < 3; k++)
+          int orientation = get_face_orientation (&n, verts, tmp);
+          if ((orientation < -3) || (3 < orientation))
             {
-              _OBJVertexCoord_t *v
-                  = (_OBJVertexCoord_t *)DynA_at (verts, vert_idx[k]);
-              if (!v)
-                {
-                  DynA_free (in_front);
-                  DynA_free (behind);
-                  DynA_free (to_split);
-                  return NULL;
-                }
-
-              float diff[3] = {
-                objv_get_x (v) - n.pos[0],
-                objv_get_y (v) - n.pos[1],
-                objv_get_z (v) - n.pos[2],
-              };
-
-              float dist = n.norm[0] * diff[0] + n.norm[1] * diff[1]
-                           + n.norm[2] * diff[2];
-
-              if (dist < 0)
-                cnt -= 1;
-              else
-                cnt += 1;
+              DynA_free (in_front);
+              DynA_free (behind);
+              DynA_free (to_split);
+              return NULL;
             }
 
-          printf ("Cnt: %d - ", cnt);
-          if (cnt == 3)
+          if (orientation == 3)
             {
-              puts ("In front!");
               if (DynA_append (in_front, (void *)tmp) != 0)
                 {
                   DynA_free (in_front);
@@ -274,9 +288,8 @@ bsp_alloc (OBJFile_t *o)
                   return NULL;
                 }
             }
-          else if (cnt == -3)
+          else if (orientation == -3)
             {
-              puts ("Behind!");
               if (DynA_append (behind, (void *)tmp) != 0)
                 {
                   DynA_free (in_front);
@@ -287,7 +300,6 @@ bsp_alloc (OBJFile_t *o)
             }
           else
             {
-              puts ("Need to split!");
               if (DynA_append (to_split, (void *)tmp) != 0)
                 {
                   DynA_free (in_front);
