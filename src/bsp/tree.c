@@ -202,13 +202,6 @@ bsp_alloc (OBJFile_t *o)
           || (get_face_centroid (splitting_plane, verts, n.pos) != 0))
         return NULL;
 
-      const size_t N_FACES = DynA_get_size (faces);
-      for (size_t j = 0; j < N_FACES; j++)
-        {
-          _OBJFace_t *curr_f = (_OBJFace_t *)DynA_at (faces, j);
-          (void)curr_f;
-        }
-
       /**
        *  TODO: need list of faces totally behind or totally in front of us
        *  then, for faces that we intersect, we need to split them so that the
@@ -216,7 +209,101 @@ bsp_alloc (OBJFile_t *o)
        *  "in front" list. After that, rerun this whole process on those two
        *  groups until we can't do anymore splitting!
        */
+      DynamicArr_t *in_front = DynA_alloc (sizeof (_OBJFace_t *));
+      DynamicArr_t *behind = DynA_alloc (sizeof (_OBJFace_t *));
+      DynamicArr_t *to_split = DynA_alloc (sizeof (_OBJFace_t *));
+      if ((!in_front) || (!behind) || (!to_split))
+        {
+          DynA_free (in_front);
+          DynA_free (behind);
+          DynA_free (to_split);
+          return NULL;
+        }
 
+      const size_t N_FACES = DynA_get_size (faces);
+      for (size_t j = 0; j < N_FACES; j++)
+        {
+          _OBJFace_t *tmp = (_OBJFace_t *)DynA_at (faces, j);
+          if (!tmp)
+            {
+              DynA_free (in_front);
+              DynA_free (behind);
+              DynA_free (to_split);
+              return NULL;
+            }
+
+          size_t *vert_idx = objf_get_vert_idxs (tmp);
+
+          int32_t cnt = 0;
+          for (size_t k = 0; k < 3; k++)
+            {
+              _OBJVertexCoord_t *v
+                  = (_OBJVertexCoord_t *)DynA_at (verts, vert_idx[k]);
+              if (!v)
+                {
+                  DynA_free (in_front);
+                  DynA_free (behind);
+                  DynA_free (to_split);
+                  return NULL;
+                }
+
+              float diff[3] = {
+                objv_get_x (v) - n.pos[0],
+                objv_get_y (v) - n.pos[1],
+                objv_get_z (v) - n.pos[2],
+              };
+
+              float dist = n.norm[0] * diff[0] + n.norm[1] * diff[1]
+                           + n.norm[2] * diff[2];
+
+              if (dist < 0)
+                cnt -= 1;
+              else
+                cnt += 1;
+            }
+
+          printf ("Cnt: %d - ", cnt);
+          if (cnt == 3)
+            {
+              puts ("In front!");
+              if (DynA_append (in_front, (void *)tmp) != 0)
+                {
+                  DynA_free (in_front);
+                  DynA_free (behind);
+                  DynA_free (to_split);
+                  return NULL;
+                }
+            }
+          else if (cnt == -3)
+            {
+              puts ("Behind!");
+              if (DynA_append (behind, (void *)tmp) != 0)
+                {
+                  DynA_free (in_front);
+                  DynA_free (behind);
+                  DynA_free (to_split);
+                  return NULL;
+                }
+            }
+          else
+            {
+              puts ("Need to split!");
+              if (DynA_append (to_split, (void *)tmp) != 0)
+                {
+                  DynA_free (in_front);
+                  DynA_free (behind);
+                  DynA_free (to_split);
+                  return NULL;
+                }
+            }
+        }
+
+      printf ("in_front size: %zu\n", DynA_get_size (in_front));
+      printf ("behind size: %zu\n", DynA_get_size (behind));
+      printf ("to_split size: %zu\n", DynA_get_size (to_split));
+      DynA_free (in_front);
+      DynA_free (behind);
+      DynA_free (to_split);
       break;
     }
 
