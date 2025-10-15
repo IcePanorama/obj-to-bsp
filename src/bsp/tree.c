@@ -10,6 +10,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define BSPEPS (1e-6)
+
 typedef struct BSPNode_s
 {
   float pos[3];
@@ -98,6 +100,23 @@ calc_face_norm (_OBJFace_t *f, DynamicArr_t *v, float n[static 1])
   return 0;
 }
 
+/** `o` (the output) should be of type float[3]. */
+static void
+calc_dist (float x0, float y0, float z0, float x1, float y1, float z1,
+           float o[static 1])
+{
+  o[0] = x1 - x0;
+  o[1] = y1 - y0;
+  o[2] = z1 - z0;
+}
+
+// TODO: inline or macro?
+static float
+sign_dist (float x, float y, float z, float nx, float ny, float nz)
+{
+  return nx * x + ny * y + nz * z;
+}
+
 /**
  *  Scores split based on centroids of faces rather than on individual
  *  vertices.
@@ -124,14 +143,10 @@ score_split_basic (float o[static 1], float n[static 1], size_t idx,
       if (get_face_centroid (curr, v, end) != 0)
         return UINT32_MAX;
 
-      float diff[3] = {
-        end[0] - o[0],
-        end[1] - o[1],
-        end[2] - o[2],
-      };
-
-      float dist = n[0] * diff[0] + n[1] * diff[1] + n[2] * diff[2];
-      if (dist < 0)
+      float diff[3] = { 0 };
+      calc_dist (o[0], o[1], o[2], end[0], end[1], end[2], diff);
+      float sdist = sign_dist (diff[0], diff[1], diff[2], n[0], n[1], n[2]);
+      if (sdist < 0)
         count -= 1;
       else
         count += 1;
@@ -177,20 +192,18 @@ find_splitting_plane (_OBJObj_t *o)
   return out;
 }
 
-/** Returns `INT_MAX` upon failure. */
-static int
+/** Returns `INFINITY` upon failure. */
+static float
 get_vertex_orientation (BSPNode_t n[static 1], _OBJVertexCoord_t *v)
 {
   if (!v)
-    return INT_MAX;
+    return INFINITY;
 
-  float diff[3] = {
-    objv_get_x (v) - n->pos[0],
-    objv_get_y (v) - n->pos[1],
-    objv_get_z (v) - n->pos[2],
-  };
+  float d[3] = { 0 };
+  calc_dist (n->pos[0], n->pos[1], n->pos[2], objv_get_x (v), objv_get_y (v),
+             objv_get_z (v), d);
 
-  return n->norm[0] * diff[0] + n->norm[1] * diff[1] + n->norm[2] * diff[2];
+  return sign_dist (d[0], d[1], d[2], n->norm[0], n->norm[1], n->norm[2]);
 }
 
 /** Returns value outside the range of [-3, 3] upon failure. */
@@ -208,13 +221,16 @@ get_face_orientation (BSPNode_t n[static 1], DynamicArr_t *v, _OBJFace_t *f)
       if (!curr)
         return INT_MAX;
 
-      int orientation = get_vertex_orientation (n, curr);
-      if (orientation == INT_MAX)
-        return INT_MAX;
-      else if (orientation < 0)
+      float orientation = get_vertex_orientation (n, curr);
+      if (fabs (orientation - INFINITY) < (BSPEPS))
+        return INT_MAX; // get_vertex_orientation err
+      else if (orientation > (BSPEPS))
+        cnt += 1;
+      else if (orientation < -(BSPEPS))
         cnt -= 1;
       else
-        cnt += 1;
+        cnt += 0;
+      printf ("cnt: %d\n", cnt);
     }
 
   return cnt;
@@ -280,7 +296,7 @@ bsp_alloc (OBJFile_t *o)
 
           if (orientation == 3)
             {
-              if (DynA_append (in_front, (void *)tmp) != 0)
+              if (DynA_append (in_front, (void **)&tmp) != 0)
                 {
                   DynA_free (in_front);
                   DynA_free (behind);
@@ -290,7 +306,7 @@ bsp_alloc (OBJFile_t *o)
             }
           else if (orientation == -3)
             {
-              if (DynA_append (behind, (void *)tmp) != 0)
+              if (DynA_append (behind, (void **)&tmp) != 0)
                 {
                   DynA_free (in_front);
                   DynA_free (behind);
@@ -300,7 +316,7 @@ bsp_alloc (OBJFile_t *o)
             }
           else
             {
-              if (DynA_append (to_split, (void *)tmp) != 0)
+              if (DynA_append (to_split, (void **)&tmp) != 0)
                 {
                   DynA_free (in_front);
                   DynA_free (behind);
@@ -313,6 +329,29 @@ bsp_alloc (OBJFile_t *o)
       printf ("in_front size: %zu\n", DynA_get_size (in_front));
       printf ("behind size: %zu\n", DynA_get_size (behind));
       printf ("to_split size: %zu\n", DynA_get_size (to_split));
+
+      printf ("\nn pos: %f, %f, %f\n", n.pos[0], n.pos[1], n.pos[2]);
+      printf ("n norm: %f, %f, %f\n\n", n.norm[0], n.norm[1], n.norm[2]);
+
+      printf ("Eps: %f\n", (BSPEPS));
+      const size_t N_SPLITS = DynA_get_size (to_split);
+      for (size_t j = 0; j < N_SPLITS; j++)
+        {
+          // FIXME: not checking if these are null!
+          _OBJFace_t *f = *(_OBJFace_t **)DynA_at (to_split, j);
+          size_t *idx = objf_get_vert_idxs (f);
+          printf ("%d\n", get_face_orientation (&n, verts, f));
+          for (size_t k = 0; k < 3; k++)
+            {
+              _OBJVertexCoord_t *v = DynA_at (verts, idx[k]);
+              printf ("f: %f, %f, %f\n", objv_get_x (v), objv_get_y (v),
+                      objv_get_z (v));
+              printf ("%f\n", get_vertex_orientation (&n, v));
+            }
+          printf ("------------\n");
+          break;
+        }
+
       DynA_free (in_front);
       DynA_free (behind);
       DynA_free (to_split);
