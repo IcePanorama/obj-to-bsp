@@ -97,9 +97,13 @@ calc_face_norm (_OBJFace_t *f, DynamicArr_t *v, float n[static 1])
   return 0;
 }
 
+/**
+ *  Scores split based on centroids of faces rather than on individual
+ *  vertices.
+ */
 static uint32_t
-score_split (float o[static 1], float n[static 1], size_t idx, DynamicArr_t *f,
-             DynamicArr_t *v)
+score_split_basic (float o[static 1], float n[static 1], size_t idx,
+                   DynamicArr_t *f, DynamicArr_t *v)
 {
   if (!f || !v)
     return UINT32_MAX;
@@ -160,7 +164,7 @@ find_splitting_plane (_OBJObj_t *o)
       if (get_face_centroid (curr, verts, origin) != 0)
         return NULL;
 
-      uint32_t count = score_split (origin, norm, i, faces, verts);
+      uint32_t count = score_split_basic (origin, norm, i, faces, verts);
       if (count < min_count)
         {
           min_count = count;
