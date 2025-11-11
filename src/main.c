@@ -17,15 +17,22 @@ main (int argc, char **argv)
 
   OBJFile_t *obj = obj_alloc (argv[1]);
   if (!obj)
-    return EXIT_FAILURE;
-
-  BSPTree_t *t = bsp_alloc (obj);
-  if (!t)
     {
-      obj_free (obj);
+      fprintf (stderr, "obj_alloc failure\n");
       return EXIT_FAILURE;
     }
 
+  BSPTree_t *t = bsp_alloc (obj);
+  /*
+  if (!t)
+    {
+      fprintf (stderr, "bsp_alloc failure\n");
+      obj_free (obj);
+      return EXIT_FAILURE;
+    }
+    */
+
+  bsp_free (t);
   obj_free (obj);
   return EXIT_SUCCESS;
 }
