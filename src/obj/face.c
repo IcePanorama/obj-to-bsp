@@ -7,13 +7,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
-struct _OBJFace_s
-{
-  size_t vert_idx[3];
-};
-*/
-
 _OBJFace_t *
 objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
 {
@@ -48,7 +41,6 @@ objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
           return NULL;
         }
 
-      // f->vert_idx[i] = atoi (tok) - 1;
       _OBJVertexCoord_t *v = DynA_at (verts, atoi (tok) - 1);
       if (!v)
         {
@@ -93,6 +85,5 @@ objf_get_vert_idxs (_OBJFace_t *f)
   if (!f)
     return NULL;
 
-  // return f->vert_idx;
   return NULL;
 }
