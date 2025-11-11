@@ -276,6 +276,7 @@ split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *v,
   return 0;
 }
 
+// FIXME: should only operate on a single object?, refactor
 BSPTree_t *
 bsp_alloc (OBJFile_t *o)
 {
@@ -328,6 +329,8 @@ bsp_alloc (OBJFile_t *o)
       printf ("in_front size: %zu\n", DynA_get_size (in_front));
       printf ("behind size: %zu\n", DynA_get_size (behind));
       printf ("to_split size: %zu\n", DynA_get_size (to_split));
+      // fixme later
+      assert (DynA_get_size (to_split) == 0);
 
       printf ("\nn pos: %f, %f, %f\n", n.pos[0], n.pos[1], n.pos[2]);
       printf ("n norm: %f, %f, %f\n", n.norm[0], n.norm[1], n.norm[2]);
