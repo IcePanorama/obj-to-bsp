@@ -3,6 +3,7 @@
 #include "obj/obj.h"
 #include "obj/vertex_coord.h"
 
+#include <assert.h>
 #include <float.h>
 #include <limits.h>
 #include <math.h>
@@ -222,27 +223,57 @@ get_face_orientation (BSPNode_t n[static 1], DynamicArr_t *v, _OBJFace_t *f)
         return INT_MAX;
 
       float orientation = get_vertex_orientation (n, curr);
-      // printf ("orientation: %f\n", orientation);
       if (fabs (orientation - INFINITY) < (BSPEPS))
         return INT_MAX; // get_vertex_orientation err
       else if (orientation > (BSPEPS))
         {
-          // puts ("foo.");
           cnt += 1;
         }
       else if (orientation < -(BSPEPS))
         {
-          // puts ("bar.");
           cnt -= 1;
         }
       else
         {
-          // puts ("qux.");
           cnt += 0;
         }
     }
 
+  assert (-3 <= cnt && cnt <= 3);
   return cnt;
+}
+
+int
+split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *v,
+             DynamicArr_t *in_front, DynamicArr_t *behind,
+             DynamicArr_t *to_split)
+{
+  const size_t N_FACES = DynA_get_size (f);
+  for (size_t j = 0; j < N_FACES; j++)
+    {
+      _OBJFace_t *tmp = (_OBJFace_t *)DynA_at (f, j);
+      if (!tmp)
+        return -1;
+
+      int orientation = get_face_orientation (n, v, tmp);
+      if ((0 <= orientation) && (orientation <= 3))
+        {
+          if (DynA_append (in_front, (void **)&tmp) != 0)
+            return -1;
+        }
+      else if ((-3 <= orientation) && (orientation < 0))
+        {
+          if (DynA_append (behind, (void **)&tmp) != 0)
+            return -1;
+        }
+      else
+        {
+          if (DynA_append (to_split, (void **)&tmp) != 0)
+            return -1;
+        }
+    }
+
+  return 0;
 }
 
 BSPTree_t *
@@ -261,9 +292,8 @@ bsp_alloc (OBJFile_t *o)
       if (!splitting_plane)
         return NULL;
 
-      DynamicArr_t *faces = objo_get_faces (curr);
       DynamicArr_t *verts = objo_get_verts (curr);
-      if ((!faces) || (!verts))
+      if (!verts)
         return NULL;
 
       BSPNode_t n = { 0 };
@@ -271,9 +301,14 @@ bsp_alloc (OBJFile_t *o)
           || (get_face_centroid (splitting_plane, verts, n.pos) != 0))
         return NULL;
 
-      DynamicArr_t *in_front = DynA_alloc (sizeof (_OBJFace_t *));
-      DynamicArr_t *behind = DynA_alloc (sizeof (_OBJFace_t *));
-      DynamicArr_t *to_split = DynA_alloc (sizeof (_OBJFace_t *));
+      DynamicArr_t *faces = objo_get_faces (curr);
+      if (!faces)
+        return NULL;
+
+      const size_t FACE_PTR_SIZE = sizeof (_OBJFace_t *);
+      DynamicArr_t *in_front = DynA_alloc (FACE_PTR_SIZE);
+      DynamicArr_t *behind = DynA_alloc (FACE_PTR_SIZE);
+      DynamicArr_t *to_split = DynA_alloc (FACE_PTR_SIZE);
       if ((!in_front) || (!behind) || (!to_split))
         {
           DynA_free (in_front);
@@ -282,57 +317,12 @@ bsp_alloc (OBJFile_t *o)
           return NULL;
         }
 
-      const size_t N_FACES = DynA_get_size (faces);
-      printf ("N_FACES: %zu\n", N_FACES);
-      for (size_t j = 0; j < N_FACES; j++)
+      if (split_faces (&n, faces, verts, in_front, behind, to_split) != 0)
         {
-          _OBJFace_t *tmp = (_OBJFace_t *)DynA_at (faces, j);
-          if (!tmp)
-            {
-              DynA_free (in_front);
-              DynA_free (behind);
-              DynA_free (to_split);
-              return NULL;
-            }
-
-          int orientation = get_face_orientation (&n, verts, tmp);
-          if ((orientation < -3) || (3 < orientation))
-            {
-              DynA_free (in_front);
-              DynA_free (behind);
-              DynA_free (to_split);
-              return NULL;
-            }
-          else if ((0 <= orientation) && (orientation <= 3))
-            {
-              if (DynA_append (in_front, (void **)&tmp) != 0)
-                {
-                  DynA_free (in_front);
-                  DynA_free (behind);
-                  DynA_free (to_split);
-                  return NULL;
-                }
-            }
-          else if ((-3 <= orientation) && (orientation < 0))
-            {
-              if (DynA_append (behind, (void **)&tmp) != 0)
-                {
-                  DynA_free (in_front);
-                  DynA_free (behind);
-                  DynA_free (to_split);
-                  return NULL;
-                }
-            }
-          else
-            {
-              if (DynA_append (to_split, (void **)&tmp) != 0)
-                {
-                  DynA_free (in_front);
-                  DynA_free (behind);
-                  DynA_free (to_split);
-                  return NULL;
-                }
-            }
+          DynA_free (in_front);
+          DynA_free (behind);
+          DynA_free (to_split);
+          return NULL;
         }
 
       printf ("in_front size: %zu\n", DynA_get_size (in_front));
