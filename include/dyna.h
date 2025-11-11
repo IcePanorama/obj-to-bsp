@@ -54,4 +54,7 @@ void *DynA_at (DynamicArr_t *a, size_t i);
  */
 int DynA_append (DynamicArr_t *a, void *el);
 
+/** Returns index of `el` in `a` or -1 if it's not found. */
+int DynA_index_of (DynamicArr_t *a, void *el);
+
 #endif /* _DYNA_DYNAMIC_ARRAY_LIBRARY_H_ */

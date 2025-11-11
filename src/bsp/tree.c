@@ -342,46 +342,6 @@ bsp_alloc (OBJFile_t *o)
       printf ("\nn pos: %f, %f, %f\n", n.pos[0], n.pos[1], n.pos[2]);
       printf ("n norm: %f, %f, %f\n", n.norm[0], n.norm[1], n.norm[2]);
 
-      // LO: test if our splitting actually works somehow.
-      /*
-      const size_t N_SPLITS = DynA_get_size (to_split);
-      for (size_t j = 0; j < N_SPLITS; j++)
-        {
-          float ori[3] = { 0 };
-          //  FIXME: not checking if these are null!
-          _OBJFace_t *f = *(_OBJFace_t **)DynA_at (to_split, j);
-          size_t *idx = objf_get_vert_idxs (f);
-          for (size_t k = 0; k < 3; k++)
-            {
-              _OBJVertexCoord_t *v = DynA_at (verts, idx[k]);
-              float tmpd[3] = { 0 };
-              calc_dist (n.pos[0], n.pos[1], n.pos[2], objv_get_x (v),
-                         objv_get_y (v), objv_get_z (v), tmpd);
-              ori[k] = get_vertex_orientation (&n, v);
-              printf ("v: %f, %f, %f\n", objv_get_x (v), objv_get_y (v),
-                      objv_get_z (v));
-              printf ("dist: %f, %f, %f\n", tmpd[0], tmpd[1], tmpd[2]);
-              printf ("ori: %f\n", ori[k]);
-
-              *
-              printf ("\nori: %f, %f, %f\n", ori[0], ori[1], ori[2]);
-              printf ("On the sp: %d\n",
-                      3 - abs (get_face_orientation (&n, verts, f)));
-              printf ("v: %f, %f, %f\n", objv_get_x (v), objv_get_y (v),
-                      objv_get_z (v));
-
-              if (ori[k] == 0)
-                {
-                  goto tmplabel;
-                }
-              *
-            }
-          // printf ("ori: %f, %f, %f\n", ori[0], ori[1], ori[2]);
-          printf ("------------\n");
-          break;
-        }
-    */
-
       DynA_free (in_front);
       DynA_free (behind);
       DynA_free (to_split);
