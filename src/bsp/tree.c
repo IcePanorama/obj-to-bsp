@@ -31,25 +31,13 @@ struct BSPTree_s
  *  function assumes out is of length 3.
  */
 static int
-// get_face_centroid (_OBJFace_t *f, DynamicArr_t *v, float out[static 1])
 get_face_centroid (_OBJFace_t *f, float out[static 1])
 {
-  if (!f) // || !v)
+  if (!f)
     return -1;
-
-  // size_t *idx = objf_get_vert_idxs (f);
 
   for (size_t j = 0; j < 3; j++)
     {
-      /*
-    _OBJVertexCoord_t *curr = (_OBJVertexCoord_t *)DynA_at (v, idx[j]);
-    if (!curr)
-      return -1;
-
-    out[0] += objv_get_x (curr);
-    out[1] += objv_get_y (curr);
-    out[2] += objv_get_z (curr);
-    */
       out[0] += f->vertices[j][0];
       out[1] += f->vertices[j][1];
       out[2] += f->vertices[j][2];
@@ -67,38 +55,12 @@ get_face_centroid (_OBJFace_t *f, float out[static 1])
  *  len of `n` is at least 3.
  */
 static int
-// calc_face_norm (_OBJFace_t *f, DynamicArr_t *v, float n[static 1])
 calc_face_norm (_OBJFace_t *f, float n[static 1])
 {
-  if (!f) // || !v)
+  if (!f)
     return -1;
-
-  /*
-  size_t *idx = objf_get_vert_idxs (f);
-  if (!idx)
-    return -1;
-    */
 
   float *c[3] = { f->vertices[0], f->vertices[1], f->vertices[2] };
-  /*
-  float c[3][3] = { 0 };
-  for (size_t j = 0; j < 3; j++)
-    {
-      *
-    _OBJVertexCoord_t *curr = (_OBJVertexCoord_t *)DynA_at (v, idx[j]);
-    if (!curr)
-      return -1;
-
-      c[j][0] = objv_get_x (curr);
-    c[j][1] = objv_get_y (curr);
-    c[j][2] = objv_get_z (curr);
-      *
-
-      c[j][0] = f->vertices[j][0];
-      c[j][1] = f->vertices[j][1];
-      c[j][2] = f->vertices[j][2];
-    }
-    */
 
   /**
    *  See: https://wikis.khronos.org/opengl/Calculating_a_Surface_Normal.
@@ -141,12 +103,10 @@ sign_dist (float x, float y, float z, float nx, float ny, float nz)
  *  vertices.
  */
 static uint32_t
-// score_split_basic (float o[static 1], float n[static 1], size_t idx,
-// DynamicArr_t *f, DynamicArr_t *v)
 score_split_basic (float o[static 1], float n[static 1], size_t idx,
                    DynamicArr_t *f)
 {
-  if (!f) // || !v)
+  if (!f)
     return UINT32_MAX;
 
   int32_t count = 0;
@@ -161,7 +121,6 @@ score_split_basic (float o[static 1], float n[static 1], size_t idx,
         return UINT32_MAX;
 
       float end[3] = { 0 };
-      // if (get_face_centroid (curr, v, end) != 0)
       if (get_face_centroid (curr, end) != 0)
         return UINT32_MAX;
 
@@ -181,8 +140,7 @@ _OBJFace_t *
 find_splitting_plane (_OBJObj_t *o)
 {
   DynamicArr_t *faces = objo_get_faces (o);
-  // DynamicArr_t *verts = objo_get_verts (o);
-  if ((!faces)) // || (!verts))
+  if (!faces)
     return NULL;
 
   _OBJFace_t *out = NULL;
@@ -202,14 +160,12 @@ find_splitting_plane (_OBJObj_t *o)
         }
 
       float origin[3] = { 0 };
-      // if (get_face_centroid (curr, verts, origin) != 0)
       if (get_face_centroid (curr, origin) != 0)
         {
           fprintf (stderr, "[%s] Failed to find face centroid.\n", __func__);
           return NULL;
         }
 
-      // uint32_t count = score_split_basic (origin, norm, i, faces, verts);
       uint32_t count = score_split_basic (origin, norm, i, faces);
       if (count < min_count)
         {
@@ -224,17 +180,9 @@ find_splitting_plane (_OBJObj_t *o)
 
 /** Returns `INFINITY` upon failure. */
 static float
-// get_vertex_orientation (BSPNode_t n[static 1], _OBJVertexCoord_t *v)
 get_vertex_orientation (BSPNode_t n[static 1], float v[3])
 {
-  /*
-if (!v)
-  return INFINITY;
-  */
-
   float d[3] = { 0 };
-  // calc_dist (n->pos[0], n->pos[1], n->pos[2], objv_get_x (v), objv_get_y
-  // (v), objv_get_z (v), d);
   calc_dist (n->pos[0], n->pos[1], n->pos[2], v[0], v[1], v[2], d);
 
   return sign_dist (d[0], d[1], d[2], n->norm[0], n->norm[1], n->norm[2]);
@@ -242,30 +190,12 @@ if (!v)
 
 /** Returns value outside the range of [-3, 3] upon failure. */
 static int
-// get_face_orientation (BSPNode_t n[static 1], DynamicArr_t *v, _OBJFace_t *f)
 get_face_orientation (BSPNode_t n[static 1], _OBJFace_t *f)
 {
-  /*
-size_t *vert_idx = objf_get_vert_idxs (f);
-if (!vert_idx)
-  return INT_MAX;
-  */
-
   int32_t cnt = 0;
   for (size_t i = 0; i < 3; i++)
     {
-      /*
-    _OBJVertexCoord_t *curr = (_OBJVertexCoord_t *)DynA_at (v, vert_idx[i]);
-    if (!curr)
-      return INT_MAX;
-      */
-
-      // float orientation = get_vertex_orientation (n, curr);
       float orientation = get_vertex_orientation (n, f->vertices[i]);
-      /*
-      if (fabs (orientation - INFINITY) < (BSPEPS))
-        return INT_MAX; // get_vertex_orientation err
-      */
       if (orientation > (BSPEPS))
         {
           cnt += 1;
@@ -285,8 +215,6 @@ if (!vert_idx)
 }
 
 int
-// split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *v,
-// DynamicArr_t *in_front, DynamicArr_t *behind, DynamicArr_t *to_split)
 split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *in_front,
              DynamicArr_t *behind, DynamicArr_t *to_split)
 {
@@ -297,7 +225,6 @@ split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *in_front,
       if (!tmp)
         return -1;
 
-      // int orientation = get_face_orientation (n, v, tmp);
       int orientation = get_face_orientation (n, tmp);
       if ((0 <= orientation) && (orientation <= 3))
         {
@@ -339,16 +266,8 @@ bsp_alloc (OBJFile_t *o)
           return NULL;
         }
 
-      /*
-      DynamicArr_t *verts = objo_get_verts (curr);
-      if (!verts)
-        return NULL;
-        */
-
       BSPNode_t n = { 0 };
-      // if ((calc_face_norm (splitting_plane, verts, n.norm) != 0)
       if ((calc_face_norm (splitting_plane, n.norm) != 0)
-          //|| (get_face_centroid (splitting_plane, verts, n.pos) != 0))
           || (get_face_centroid (splitting_plane, n.pos) != 0))
         {
           fprintf (stderr,
@@ -379,7 +298,6 @@ bsp_alloc (OBJFile_t *o)
           return NULL;
         }
 
-      // if (split_faces (&n, faces, verts, in_front, behind, to_split) != 0)
       if (split_faces (&n, faces, in_front, behind, to_split) != 0)
         {
           fprintf (stderr, "[%s] Failed to split faces.\n", __func__);
