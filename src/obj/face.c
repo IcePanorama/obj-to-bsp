@@ -1,17 +1,21 @@
 #include "obj/face.h"
+#include "dyna.h"
 #include "obj/errors.h"
+#include "obj/vertex_coord.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+/*
 struct _OBJFace_s
 {
   size_t vert_idx[3];
 };
+*/
 
 _OBJFace_t *
-objf_alloc (char input[static 1])
+objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
 {
   _OBJFace_t *f = calloc (1, sizeof (_OBJFace_t));
   char *input_cpy = strdup (input); // for an error message later.
@@ -44,7 +48,20 @@ objf_alloc (char input[static 1])
           return NULL;
         }
 
-      f->vert_idx[i] = atoi (tok) - 1;
+      // f->vert_idx[i] = atoi (tok) - 1;
+      _OBJVertexCoord_t *v = DynA_at (verts, atoi (tok) - 1);
+      if (!v)
+        {
+          // fixme: redo later lol
+          fprintf (stderr, "%s: shit's fucked! f %s\n", __func__, input_cpy);
+          free (input_cpy);
+          objf_free (f);
+          return NULL;
+        }
+
+      f->vertices[i][0] = objv_get_x (v);
+      f->vertices[i][1] = objv_get_y (v);
+      f->vertices[i][2] = objv_get_z (v);
 
       if (end)
         ptr = end + 1;
@@ -76,5 +93,6 @@ objf_get_vert_idxs (_OBJFace_t *f)
   if (!f)
     return NULL;
 
-  return f->vert_idx;
+  // return f->vert_idx;
+  return NULL;
 }

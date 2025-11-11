@@ -34,9 +34,9 @@ process_vertex_coord (_OBJObj_t *o, char *l)
 }
 
 static int
-process_face (_OBJObj_t *o, char *l)
+process_face (_OBJObj_t *o, char *l, DynamicArr_t *verts)
 {
-  _OBJFace_t *f = objf_alloc (l);
+  _OBJFace_t *f = objf_alloc (l, verts);
   if (!f)
     return -1;
 
@@ -80,7 +80,7 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
 
       if (strncmp (l, "f ", 2) == 0)
         {
-          if (process_face (o, l + 2) != 0)
+          if (process_face (o, l + 2, o->verts) != 0)
             goto err_exit;
         }
       else if (strncmp (l, "v ", 2) == 0)
