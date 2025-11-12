@@ -4,7 +4,7 @@
 #include <string.h>
 
 int
-objv_init (_OBJVertexCoord_t v[static 1], char input[static 1])
+objv_init (OBJVertexCoord_t v[static 1], char input[static 1])
 {
   float vals[3] = { 0 };
   size_t i = 0;

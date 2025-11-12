@@ -18,7 +18,7 @@ struct _OBJObj_s
 static int
 process_vertex (DynamicArr_t *verts, char l[static 1])
 {
-  _OBJVertexCoord_t v = { 0 };
+  OBJVertexCoord_t v = { 0 };
   if (objv_init (&v, l) != 0)
     return -1;
 
@@ -58,7 +58,7 @@ process_file (OBJObj_t o[static 1], FILE fptr[static 1])
   char *l = NULL;
   size_t l_len = 0;
 
-  DynamicArr_t *verts = DynA_alloc (sizeof (_OBJVertexCoord_t));
+  DynamicArr_t *verts = DynA_alloc (sizeof (OBJVertexCoord_t));
   if (!verts)
     {
       fprintf (stderr, "[%s] Out of memory error!\n", __func__);

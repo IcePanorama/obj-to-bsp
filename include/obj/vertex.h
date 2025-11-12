@@ -9,8 +9,8 @@ typedef struct _OBJVertexCoord_s
   float y;
   float z;
   // float w; // optional, defaults to 1.0.
-} _OBJVertexCoord_t;
+} OBJVertexCoord_t;
 
-int objv_init (_OBJVertexCoord_t v[static 1], char input[static 1]);
+int objv_init (OBJVertexCoord_t v[static 1], char input[static 1]);
 
 #endif /* _WAVEFRONT_OBJ_VERTEX_COORDINATE_H_ */

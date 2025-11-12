@@ -34,7 +34,7 @@ objf_init (OBJFace_t f[static 1], char input[static 1],
           return -1;
         }
 
-      _OBJVertexCoord_t *v = DynA_at (verts, atoi (tok) - 1);
+      OBJVertexCoord_t *v = DynA_at (verts, atoi (tok) - 1);
       if (!v)
         {
           // fixme: redo later lol
