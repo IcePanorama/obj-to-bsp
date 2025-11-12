@@ -7,8 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-static int
-init (_OBJFace_t f[static 1], char input[static 1], DynamicArr_t *verts)
+int
+objf_init (_OBJFace_t f[static 1], char input[static 1],
+           struct _DynamicArr_s *verts)
 {
   char *input_cpy = strdup (input); // for an error message later.
   if (!input_cpy)
@@ -52,39 +53,6 @@ init (_OBJFace_t f[static 1], char input[static 1], DynamicArr_t *verts)
 
   free (input_cpy);
   return 0;
-}
-
-_OBJFace_t *
-objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
-{
-  _OBJFace_t *f = calloc (1, sizeof (_OBJFace_t));
-  if (!f)
-    {
-      WAVOBJ_OOM_ERR ();
-
-      if (f)
-        objf_free (f);
-
-      return NULL;
-    }
-
-  if (init (f, input, verts) != 0)
-    {
-      objf_free (f);
-      return NULL;
-    }
-
-  return f;
-}
-
-void
-objf_free (_OBJFace_t *f)
-{
-  if (!f)
-    return;
-
-  free (f);
-  f = NULL;
 }
 
 size_t

@@ -35,17 +35,15 @@ process_vertex_coord (DynamicArr_t *verts, char l[static 1])
 static int
 process_face (_OBJObj_t *o, char *l, DynamicArr_t *verts)
 {
-  _OBJFace_t *f = objf_alloc (l, verts);
-  if (!f)
+  _OBJFace_t f = { 0 };
+  if (objf_init (&f, l, verts) != 0)
     return -1;
 
-  if (DynA_append (o->faces, f) != 0)
+  if (DynA_append (o->faces, &f) != 0)
     {
-      objf_free (f);
       return -1;
     }
 
-  objf_free (f);
   return 0;
 }
 
