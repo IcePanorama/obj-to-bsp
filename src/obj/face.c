@@ -7,21 +7,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-_OBJFace_t *
-objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
+static int
+init (_OBJFace_t f[static 1], char input[static 1], DynamicArr_t *verts)
 {
-  _OBJFace_t *f = calloc (1, sizeof (_OBJFace_t));
   char *input_cpy = strdup (input); // for an error message later.
-  if ((!f) || (!input_cpy))
+  if (!input_cpy)
     {
       WAVOBJ_OOM_ERR ();
-
-      if (f)
-        objf_free (f);
-      if (input_cpy)
-        free (input_cpy);
-
-      return NULL;
+      return -1;
     }
 
   size_t i = 0;
@@ -37,8 +30,7 @@ objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
           fprintf (stderr, "%s: Malformed input with line: f %s\n", __func__,
                    input_cpy);
           free (input_cpy);
-          objf_free (f);
-          return NULL;
+          return -1;
         }
 
       _OBJVertexCoord_t *v = DynA_at (verts, atoi (tok) - 1);
@@ -47,8 +39,7 @@ objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
           // fixme: redo later lol
           fprintf (stderr, "%s: shit's fucked! f %s\n", __func__, input_cpy);
           free (input_cpy);
-          objf_free (f);
-          return NULL;
+          return -1;
         }
 
       f->vertices[i][0] = objv_get_x (v);
@@ -60,6 +51,29 @@ objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
     }
 
   free (input_cpy);
+  return 0;
+}
+
+_OBJFace_t *
+objf_alloc (char input[static 1], struct _DynamicArr_s *verts)
+{
+  _OBJFace_t *f = calloc (1, sizeof (_OBJFace_t));
+  if (!f)
+    {
+      WAVOBJ_OOM_ERR ();
+
+      if (f)
+        objf_free (f);
+
+      return NULL;
+    }
+
+  if (init (f, input, verts) != 0)
+    {
+      objf_free (f);
+      return NULL;
+    }
+
   return f;
 }
 
@@ -77,13 +91,4 @@ size_t
 objf_size (void)
 {
   return sizeof (_OBJFace_t);
-}
-
-size_t *
-objf_get_vert_idxs (_OBJFace_t *f)
-{
-  if (!f)
-    return NULL;
-
-  return NULL;
 }

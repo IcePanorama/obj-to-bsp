@@ -15,6 +15,4 @@ void objf_free (_OBJFace_t *f);
 /** Returns the size of `_OBJFace_t` in bytes. */
 size_t objf_size (void);
 
-size_t *objf_get_vert_idxs (_OBJFace_t *f);
-
 #endif /* _WAVEFRONT_OBJ_POLYGONAL_FACE_H_ */
