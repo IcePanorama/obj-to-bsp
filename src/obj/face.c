@@ -1,7 +1,7 @@
 #include "obj/face.h"
 #include "dyna.h"
 #include "obj/errors.h"
-#include "obj/vertex_coord.h"
+#include "obj/vertex.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -43,9 +43,9 @@ objf_init (_OBJFace_t f[static 1], char input[static 1],
           return -1;
         }
 
-      f->vertices[i][0] = objv_get_x (v);
-      f->vertices[i][1] = objv_get_y (v);
-      f->vertices[i][2] = objv_get_z (v);
+      f->vertices[i][0] = v->x;
+      f->vertices[i][1] = v->y;
+      f->vertices[i][2] = v->z;
 
       if (end)
         ptr = end + 1;

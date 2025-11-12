@@ -1,7 +1,7 @@
 #include "bsp/tree.h"
 #include "obj/face.h"
 #include "obj/obj.h"
-#include "obj/vertex_coord.h"
+#include "obj/vertex.h"
 
 #include <assert.h>
 #include <float.h>

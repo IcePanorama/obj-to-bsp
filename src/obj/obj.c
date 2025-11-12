@@ -2,7 +2,7 @@
 #include "dyna.h"
 #include "obj/errors.h"
 #include "obj/face.h"
-#include "obj/vertex_coord.h"
+#include "obj/vertex.h"
 
 #include <stdbool.h>
 #include <stdio.h>
@@ -16,19 +16,15 @@ struct _OBJObj_s
 };
 
 static int
-process_vertex_coord (DynamicArr_t *verts, char l[static 1])
+process_vertex (DynamicArr_t *verts, char l[static 1])
 {
-  _OBJVertexCoord_t *v = objv_alloc (l);
-  if (!v)
+  _OBJVertexCoord_t v = { 0 };
+  if (objv_init (&v, l) != 0)
     return -1;
 
-  if (DynA_append (verts, v) != 0)
-    {
-      objv_free (v);
-      return -1;
-    }
+  if (DynA_append (verts, &v) != 0)
+    return -1;
 
-  objv_free (v);
   return 0;
 }
 
@@ -62,7 +58,7 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
   char *l = NULL;
   size_t l_len = 0;
 
-  DynamicArr_t *verts = DynA_alloc (objv_size ());
+  DynamicArr_t *verts = DynA_alloc (sizeof (_OBJVertexCoord_t));
   if (!verts)
     {
       fprintf (stderr, "[%s] Out of memory error!\n", __func__);
@@ -89,7 +85,7 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
         }
       else if (strncmp (l, "v ", 2) == 0)
         {
-          if (process_vertex_coord (verts, l + 2) != 0)
+          if (process_vertex (verts, l + 2) != 0)
             goto err_exit;
         }
       else

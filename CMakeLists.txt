@@ -40,7 +40,7 @@ set(SRC_FILES
     "${SRC_DIR}/obj/face.c"
     "${SRC_DIR}/obj/file.c"
     "${SRC_DIR}/obj/obj.c"
-    "${SRC_DIR}/obj/vertex_coord.c"
+    "${SRC_DIR}/obj/vertex.c"
 )
 
 set(INCL_DIR "${PROJECT_SOURCE_DIR}/include")
@@ -51,7 +51,7 @@ set(INCL_FILES
     "${INCL_DIR}/obj/face.h"
     "${INCL_DIR}/obj/file.h"
     "${INCL_DIR}/obj/obj.h"
-    "${INCL_DIR}/obj/vertex_coord.h"
+    "${INCL_DIR}/obj/vertex.h"
 )
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR})
