@@ -3,7 +3,7 @@
 
 #include "dyna.h"
 
-typedef struct OBJFile_s OBJFile_t;
+typedef struct _OBJFile_s OBJFile_t;
 
 OBJFile_t *obj_alloc (char path[static 1]);
 void obj_free (OBJFile_t *o);

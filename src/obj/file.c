@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct OBJFile_s
+struct _OBJFile_s
 {
   char *path;
   DynamicArr_t *objs;
