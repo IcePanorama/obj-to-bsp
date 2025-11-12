@@ -17,17 +17,17 @@ typedef struct _BSPTree_s
 {
   struct _BSPNode_s
   {
-    enum
+    enum _BSPNodeTag_e
     {
       _BSPNT_LEAF,
       _BSPNT_SPLIT
-    } type;
+    } tag;
 
-    union
+    union _BSPNodeData_u
     {
       OBJObj_t *tris;
 
-      struct BSPNSplit
+      struct _BSPNSplit_s
       {
         float pos[3];
         float norm[3];
@@ -36,7 +36,6 @@ typedef struct _BSPTree_s
         struct _BSPNode_s *right;
       } split;
     } data;
-
   } *head;
 } _BSPTree_t;
 
