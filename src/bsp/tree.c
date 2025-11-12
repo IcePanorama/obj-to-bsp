@@ -13,18 +13,32 @@
 
 #define BSPEPS (1e-6)
 
-typedef struct BSPNode_s
+typedef struct _BSPTree_s
 {
-  float pos[3];
-  float norm[3];
-  struct BSPNode_s *left;
-  struct BSPNode_s *right;
-} BSPNode_t;
+  struct _BSPNode_s
+  {
+    enum
+    {
+      _BSPNT_LEAF,
+      _BSPNT_SPLIT
+    } type;
 
-struct BSPTree_s
-{
-  DynamicArr_t *head;
-};
+    union
+    {
+      OBJObj_t *tris;
+
+      struct BSPNSplit
+      {
+        float pos[3];
+        float norm[3];
+        OBJObj_t *tris;
+        struct _BSPNode_s *left;
+        struct _BSPNode_s *right;
+      } split;
+    } data;
+
+  } *head;
+} _BSPTree_t;
 
 /**
  *  Given a face `f`, this writes its 3 vertices from `v` into out. This
@@ -173,6 +187,7 @@ find_splitting_plane (OBJObj_t *o)
 }
 
 /** Returns `INFINITY` upon failure. */
+/*
 static float
 get_vertex_orientation (BSPNode_t n[static 1], float v[3])
 {
@@ -181,8 +196,10 @@ get_vertex_orientation (BSPNode_t n[static 1], float v[3])
 
   return sign_dist (d[0], d[1], d[2], n->norm[0], n->norm[1], n->norm[2]);
 }
+*/
 
 /** Returns value outside the range of [-3, 3] upon failure. */
+/*
 static int
 get_face_orientation (BSPNode_t n[static 1], OBJFace_t f[static 1])
 {
@@ -207,7 +224,9 @@ get_face_orientation (BSPNode_t n[static 1], OBJFace_t f[static 1])
   assert (-3 <= cnt && cnt <= 3);
   return cnt;
 }
+*/
 
+/*
 int
 split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *in_front,
              DynamicArr_t *behind, DynamicArr_t *to_split)
@@ -239,6 +258,7 @@ split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *in_front,
 
   return 0;
 }
+*/
 
 BSPTree_t *
 bsp_alloc (struct _OBJObj_s *curr)
@@ -246,6 +266,7 @@ bsp_alloc (struct _OBJObj_s *curr)
   if (!curr)
     return NULL;
 
+  /*
   OBJFace_t *splitting_plane = find_splitting_plane (curr);
   if (!splitting_plane)
     {
@@ -257,13 +278,12 @@ bsp_alloc (struct _OBJObj_s *curr)
   if ((calc_face_norm (splitting_plane, n.norm) != 0)
       || (get_face_centroid (splitting_plane, n.pos) != 0))
     {
-      fprintf (stderr,
-               "[%s] Failed to calculate norm or centroid of splitting "
-               "plane.\n",
-               __func__);
-      return NULL;
+      fprintf (stderr, "[%s] Failed to calculate norm or centroid of splitting
+  plane.\n", __func__); return NULL;
     }
+    */
 
+  // FIXME: rename to tris
   DynamicArr_t *faces = objo_get_faces (curr);
   if (!faces)
     {
@@ -284,6 +304,7 @@ bsp_alloc (struct _OBJObj_s *curr)
       return NULL;
     }
 
+  /*
   if (split_faces (&n, faces, in_front, behind, to_split) != 0)
     {
       fprintf (stderr, "[%s] Failed to split faces.\n", __func__);
@@ -292,6 +313,7 @@ bsp_alloc (struct _OBJObj_s *curr)
       DynA_free (to_split);
       return NULL;
     }
+    */
 
   printf ("in_front size: %zu\n", DynA_get_size (in_front));
   printf ("behind size: %zu\n", DynA_get_size (behind));
@@ -299,8 +321,10 @@ bsp_alloc (struct _OBJObj_s *curr)
   // fixme later
   assert (DynA_get_size (to_split) == 0);
 
+  /*
   printf ("\nn pos: %f, %f, %f\n", n.pos[0], n.pos[1], n.pos[2]);
   printf ("n norm: %f, %f, %f\n", n.norm[0], n.norm[1], n.norm[2]);
+  */
 
   DynA_free (in_front);
   DynA_free (behind);
