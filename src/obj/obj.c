@@ -12,18 +12,17 @@
 struct _OBJObj_s
 {
   char *name;
-  DynamicArr_t *verts;
   DynamicArr_t *faces;
 };
 
 static int
-process_vertex_coord (_OBJObj_t *o, char *l)
+process_vertex_coord (DynamicArr_t *verts, char l[static 1])
 {
   _OBJVertexCoord_t *v = objv_alloc (l);
   if (!v)
     return -1;
 
-  if (DynA_append (o->verts, v) != 0)
+  if (DynA_append (verts, v) != 0)
     {
       objv_free (v);
       return -1;
@@ -65,6 +64,13 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
   char *l = NULL;
   size_t l_len = 0;
 
+  DynamicArr_t *verts = DynA_alloc (objv_size ());
+  if (!verts)
+    {
+      fprintf (stderr, "[%s] Out of memory error!\n", __func__);
+      return -1;
+    }
+
   // Need to make sure we don't "get" the first line of another object.
   while (!(peek_next_char_is (fptr, 'o'))
          && ((getline (&l, &l_len, fptr)) != -1))
@@ -80,12 +86,12 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
 
       if (strncmp (l, "f ", 2) == 0)
         {
-          if (process_face (o, l + 2, o->verts) != 0)
+          if (process_face (o, l + 2, verts) != 0)
             goto err_exit;
         }
       else if (strncmp (l, "v ", 2) == 0)
         {
-          if (process_vertex_coord (o, l + 2) != 0)
+          if (process_vertex_coord (verts, l + 2) != 0)
             goto err_exit;
         }
       else
@@ -102,9 +108,11 @@ process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
 
   if (l)
     free (l);
+  DynA_free (verts);
   return 0;
 err_exit:
   free (l);
+  DynA_free (verts);
   return -1;
 }
 
@@ -127,9 +135,8 @@ objo_alloc (char name[static 1], FILE fptr[static 1])
   if (o->name[name_len] == '\n')
     o->name[name_len] = '\0';
 
-  o->verts = DynA_alloc (objv_size ());
   o->faces = DynA_alloc (objf_size ());
-  if ((!o->verts) || (!o->faces))
+  if (!o->faces)
     goto alloc_err_exit;
 
   if (process_file (o, fptr) != 0)
@@ -152,10 +159,6 @@ objo_free (_OBJObj_t *o)
     free (o->name);
   o->name = NULL;
 
-  if (o->verts)
-    DynA_free (o->verts);
-  o->verts = NULL;
-
   if (o->faces)
     DynA_free (o->faces);
   o->faces = NULL;
@@ -170,13 +173,14 @@ objo_size (void)
   return sizeof (_OBJObj_t);
 }
 
+// FIXME: check where this is called, and then remove this func
 DynamicArr_t *
 objo_get_verts (_OBJObj_t *o)
 {
-  if (!o || !o->verts)
+  if (!o)
     return NULL;
 
-  return o->verts;
+  return NULL;
 }
 
 DynamicArr_t *

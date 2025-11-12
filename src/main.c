@@ -32,7 +32,9 @@ main (int argc, char **argv)
     }
     */
 
-  bsp_free (t);
+  if (t)
+    bsp_free (t);
+
   obj_free (obj);
   return EXIT_SUCCESS;
 }
