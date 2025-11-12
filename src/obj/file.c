@@ -54,7 +54,7 @@ process_file (OBJFile_t o[static 1])
         }
       else
         {
-          fprintf (stderr, "Malformed input: %s", l);
+          fprintf (stderr, "[%s] Malformed input: %s", __func__, l);
           goto loop_err_exit;
         }
 
