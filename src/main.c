@@ -1,8 +1,11 @@
 #include "bsp/tree.h"
 #include "obj/file.h"
+#include "obj/obj.h"
 
 #include <stdio.h>
 #include <stdlib.h>
+
+#include <assert.h>
 
 int
 main (int argc, char **argv)
@@ -22,7 +25,7 @@ main (int argc, char **argv)
       return EXIT_FAILURE;
     }
 
-  BSPTree_t *t = bsp_alloc (obj);
+  BSPTree_t *t = bsp_alloc (*(OBJObj_t **)DynA_at (obj_get_objs (obj), 0));
   /*
   if (!t)
     {

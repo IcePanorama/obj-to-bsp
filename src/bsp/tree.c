@@ -240,81 +240,71 @@ split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *in_front,
   return 0;
 }
 
-// FIXME: should only operate on a single object?, refactor
 BSPTree_t *
-bsp_alloc (OBJFile_t *o)
+bsp_alloc (struct _OBJObj_s *curr)
 {
-  DynamicArr_t *objs = obj_get_objs (o);
-  if (!objs)
+  if (!curr)
     return NULL;
 
-  const size_t N_OBJS = DynA_get_size (objs);
-  for (size_t i = 0; i < N_OBJS; i++)
+  OBJFace_t *splitting_plane = find_splitting_plane (curr);
+  if (!splitting_plane)
     {
-      OBJObj_t *curr = *(OBJObj_t **)DynA_at (objs, i);
+      fprintf (stderr, "[%s] Failed to find splitting plane.\n", __func__);
+      return NULL;
+    }
 
-      OBJFace_t *splitting_plane = find_splitting_plane (curr);
-      if (!splitting_plane)
-        {
-          fprintf (stderr, "[%s] Failed to find splitting plane.\n", __func__);
-          return NULL;
-        }
+  BSPNode_t n = { 0 };
+  if ((calc_face_norm (splitting_plane, n.norm) != 0)
+      || (get_face_centroid (splitting_plane, n.pos) != 0))
+    {
+      fprintf (stderr,
+               "[%s] Failed to calculate norm or centroid of splitting "
+               "plane.\n",
+               __func__);
+      return NULL;
+    }
 
-      BSPNode_t n = { 0 };
-      if ((calc_face_norm (splitting_plane, n.norm) != 0)
-          || (get_face_centroid (splitting_plane, n.pos) != 0))
-        {
-          fprintf (stderr,
-                   "[%s] Failed to calculate norm or centroid of splitting "
-                   "plane.\n",
-                   __func__);
-          return NULL;
-        }
+  DynamicArr_t *faces = objo_get_faces (curr);
+  if (!faces)
+    {
+      fprintf (stderr, "[%s] Faces not found for current object.\n", __func__);
+      return NULL;
+    }
 
-      DynamicArr_t *faces = objo_get_faces (curr);
-      if (!faces)
-        {
-          fprintf (stderr, "[%s] Faces not found for current object.\n",
-                   __func__);
-          return NULL;
-        }
-
-      const size_t FACE_PTR_SIZE = sizeof (OBJFace_t *);
-      DynamicArr_t *in_front = DynA_alloc (FACE_PTR_SIZE);
-      DynamicArr_t *behind = DynA_alloc (FACE_PTR_SIZE);
-      DynamicArr_t *to_split = DynA_alloc (FACE_PTR_SIZE);
-      if ((!in_front) || (!behind) || (!to_split))
-        {
-          fprintf (stderr, "[%s] Out of memory error.\n", __func__);
-          DynA_free (in_front);
-          DynA_free (behind);
-          DynA_free (to_split);
-          return NULL;
-        }
-
-      if (split_faces (&n, faces, in_front, behind, to_split) != 0)
-        {
-          fprintf (stderr, "[%s] Failed to split faces.\n", __func__);
-          DynA_free (in_front);
-          DynA_free (behind);
-          DynA_free (to_split);
-          return NULL;
-        }
-
-      printf ("in_front size: %zu\n", DynA_get_size (in_front));
-      printf ("behind size: %zu\n", DynA_get_size (behind));
-      printf ("to_split size: %zu\n", DynA_get_size (to_split));
-      // fixme later
-      assert (DynA_get_size (to_split) == 0);
-
-      printf ("\nn pos: %f, %f, %f\n", n.pos[0], n.pos[1], n.pos[2]);
-      printf ("n norm: %f, %f, %f\n", n.norm[0], n.norm[1], n.norm[2]);
-
+  const size_t FACE_PTR_SIZE = sizeof (OBJFace_t *);
+  DynamicArr_t *in_front = DynA_alloc (FACE_PTR_SIZE);
+  DynamicArr_t *behind = DynA_alloc (FACE_PTR_SIZE);
+  DynamicArr_t *to_split = DynA_alloc (FACE_PTR_SIZE);
+  if ((!in_front) || (!behind) || (!to_split))
+    {
+      fprintf (stderr, "[%s] Out of memory error.\n", __func__);
       DynA_free (in_front);
       DynA_free (behind);
       DynA_free (to_split);
-      break;
+      return NULL;
     }
+
+  if (split_faces (&n, faces, in_front, behind, to_split) != 0)
+    {
+      fprintf (stderr, "[%s] Failed to split faces.\n", __func__);
+      DynA_free (in_front);
+      DynA_free (behind);
+      DynA_free (to_split);
+      return NULL;
+    }
+
+  printf ("in_front size: %zu\n", DynA_get_size (in_front));
+  printf ("behind size: %zu\n", DynA_get_size (behind));
+  printf ("to_split size: %zu\n", DynA_get_size (to_split));
+  // fixme later
+  assert (DynA_get_size (to_split) == 0);
+
+  printf ("\nn pos: %f, %f, %f\n", n.pos[0], n.pos[1], n.pos[2]);
+  printf ("n norm: %f, %f, %f\n", n.norm[0], n.norm[1], n.norm[2]);
+
+  DynA_free (in_front);
+  DynA_free (behind);
+  DynA_free (to_split);
 
   return NULL;
 }
