@@ -31,11 +31,8 @@ struct BSPTree_s
  *  function assumes out is of length 3.
  */
 static int
-get_face_centroid (_OBJFace_t *f, float out[static 1])
+get_face_centroid (OBJFace_t f[static 1], float out[static 1])
 {
-  if (!f)
-    return -1;
-
   for (size_t j = 0; j < 3; j++)
     {
       out[0] += f->vertices[j][0];
@@ -55,11 +52,8 @@ get_face_centroid (_OBJFace_t *f, float out[static 1])
  *  len of `n` is at least 3.
  */
 static int
-calc_face_norm (_OBJFace_t *f, float n[static 1])
+calc_face_norm (OBJFace_t f[static 1], float n[static 1])
 {
-  if (!f)
-    return -1;
-
   float *c[3] = { f->vertices[0], f->vertices[1], f->vertices[2] };
 
   /**
@@ -116,7 +110,7 @@ score_split_basic (float o[static 1], float n[static 1], size_t idx,
       if (idx == i)
         continue;
 
-      _OBJFace_t *curr = (_OBJFace_t *)DynA_at (f, i);
+      OBJFace_t *curr = (OBJFace_t *)DynA_at (f, i);
       if (!curr)
         return UINT32_MAX;
 
@@ -136,19 +130,19 @@ score_split_basic (float o[static 1], float n[static 1], size_t idx,
   return (uint32_t)sqrt (count * count);
 }
 
-_OBJFace_t *
+OBJFace_t *
 find_splitting_plane (_OBJObj_t *o)
 {
   DynamicArr_t *faces = objo_get_faces (o);
   if (!faces)
     return NULL;
 
-  _OBJFace_t *out = NULL;
+  OBJFace_t *out = NULL;
   uint32_t min_count = UINT32_MAX;
   const size_t N_FACES = DynA_get_size (faces);
   for (size_t i = 0; i < N_FACES; i++)
     {
-      _OBJFace_t *curr = (_OBJFace_t *)DynA_at (faces, i);
+      OBJFace_t *curr = (OBJFace_t *)DynA_at (faces, i);
       if (!curr)
         return NULL;
 
@@ -190,7 +184,7 @@ get_vertex_orientation (BSPNode_t n[static 1], float v[3])
 
 /** Returns value outside the range of [-3, 3] upon failure. */
 static int
-get_face_orientation (BSPNode_t n[static 1], _OBJFace_t *f)
+get_face_orientation (BSPNode_t n[static 1], OBJFace_t f[static 1])
 {
   int32_t cnt = 0;
   for (size_t i = 0; i < 3; i++)
@@ -221,7 +215,7 @@ split_faces (BSPNode_t n[static 1], DynamicArr_t *f, DynamicArr_t *in_front,
   const size_t N_FACES = DynA_get_size (f);
   for (size_t j = 0; j < N_FACES; j++)
     {
-      _OBJFace_t *tmp = (_OBJFace_t *)DynA_at (f, j);
+      OBJFace_t *tmp = (OBJFace_t *)DynA_at (f, j);
       if (!tmp)
         return -1;
 
@@ -259,7 +253,7 @@ bsp_alloc (OBJFile_t *o)
     {
       _OBJObj_t *curr = *(_OBJObj_t **)DynA_at (objs, i);
 
-      _OBJFace_t *splitting_plane = find_splitting_plane (curr);
+      OBJFace_t *splitting_plane = find_splitting_plane (curr);
       if (!splitting_plane)
         {
           fprintf (stderr, "[%s] Failed to find splitting plane.\n", __func__);
@@ -285,7 +279,7 @@ bsp_alloc (OBJFile_t *o)
           return NULL;
         }
 
-      const size_t FACE_PTR_SIZE = sizeof (_OBJFace_t *);
+      const size_t FACE_PTR_SIZE = sizeof (OBJFace_t *);
       DynamicArr_t *in_front = DynA_alloc (FACE_PTR_SIZE);
       DynamicArr_t *behind = DynA_alloc (FACE_PTR_SIZE);
       DynamicArr_t *to_split = DynA_alloc (FACE_PTR_SIZE);

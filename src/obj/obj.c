@@ -31,7 +31,7 @@ process_vertex (DynamicArr_t *verts, char l[static 1])
 static int
 process_face (_OBJObj_t *o, char *l, DynamicArr_t *verts)
 {
-  _OBJFace_t f = { 0 };
+  OBJFace_t f = { 0 };
   if (objf_init (&f, l, verts) != 0)
     return -1;
 
@@ -129,7 +129,7 @@ objo_alloc (char name[static 1], FILE fptr[static 1])
   if (o->name[name_len] == '\n')
     o->name[name_len] = '\0';
 
-  o->faces = DynA_alloc (objf_size ());
+  o->faces = DynA_alloc (sizeof (OBJFace_t));
   if (!o->faces)
     goto alloc_err_exit;
 

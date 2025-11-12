@@ -8,7 +8,7 @@
 #include <string.h>
 
 int
-objf_init (_OBJFace_t f[static 1], char input[static 1],
+objf_init (OBJFace_t f[static 1], char input[static 1],
            struct _DynamicArr_s *verts)
 {
   char *input_cpy = strdup (input); // for an error message later.
@@ -53,10 +53,4 @@ objf_init (_OBJFace_t f[static 1], char input[static 1],
 
   free (input_cpy);
   return 0;
-}
-
-size_t
-objf_size (void)
-{
-  return sizeof (_OBJFace_t);
 }
