@@ -14,7 +14,6 @@ void objo_free (_OBJObj_t *o);
 /** Returns the size in bytes of `_OBJObj_t`. */
 size_t objo_size (void);
 
-DynamicArr_t *objo_get_verts (_OBJObj_t *o);
 DynamicArr_t *objo_get_faces (_OBJObj_t *o);
 
 #endif /* _WAVEFRONT_OBJ_OBJECTS_H_ */

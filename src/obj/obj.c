@@ -173,16 +173,6 @@ objo_size (void)
   return sizeof (_OBJObj_t);
 }
 
-// FIXME: check where this is called, and then remove this func
-DynamicArr_t *
-objo_get_verts (_OBJObj_t *o)
-{
-  if (!o)
-    return NULL;
-
-  return NULL;
-}
-
 DynamicArr_t *
 objo_get_faces (_OBJObj_t *o)
 {
