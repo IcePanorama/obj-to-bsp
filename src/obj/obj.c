@@ -29,7 +29,7 @@ process_vertex (DynamicArr_t *verts, char l[static 1])
 }
 
 static int
-process_face (_OBJObj_t *o, char *l, DynamicArr_t *verts)
+process_face (OBJObj_t *o, char *l, DynamicArr_t *verts)
 {
   OBJFace_t f = { 0 };
   if (objf_init (&f, l, verts) != 0)
@@ -53,7 +53,7 @@ peek_next_char_is (FILE *fptr, char exp)
 }
 
 static int
-process_file (_OBJObj_t o[static 1], FILE fptr[static 1])
+process_file (OBJObj_t o[static 1], FILE fptr[static 1])
 {
   char *l = NULL;
   size_t l_len = 0;
@@ -110,10 +110,10 @@ err_exit:
   return -1;
 }
 
-_OBJObj_t *
+OBJObj_t *
 objo_alloc (char name[static 1], FILE fptr[static 1])
 {
-  _OBJObj_t *o = calloc (1, sizeof (_OBJObj_t));
+  OBJObj_t *o = calloc (1, sizeof (OBJObj_t));
   if (!o)
     {
       WAVOBJ_OOM_ERR ();
@@ -144,7 +144,7 @@ alloc_err_exit:
 }
 
 void
-objo_free (_OBJObj_t *o)
+objo_free (OBJObj_t *o)
 {
   if (!o)
     return;
@@ -164,11 +164,11 @@ objo_free (_OBJObj_t *o)
 size_t
 objo_size (void)
 {
-  return sizeof (_OBJObj_t);
+  return sizeof (OBJObj_t);
 }
 
 DynamicArr_t *
-objo_get_faces (_OBJObj_t *o)
+objo_get_faces (OBJObj_t *o)
 {
   if ((!o) || (!o->faces))
     return NULL;

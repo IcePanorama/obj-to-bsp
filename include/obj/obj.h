@@ -6,14 +6,14 @@
 
 #include <stdio.h>
 
-typedef struct _OBJObj_s _OBJObj_t;
+typedef struct _OBJObj_s OBJObj_t;
 
-_OBJObj_t *objo_alloc (char name[static 1], FILE fptr[static 1]);
-void objo_free (_OBJObj_t *o);
+OBJObj_t *objo_alloc (char name[static 1], FILE fptr[static 1]);
+void objo_free (OBJObj_t *o);
 
-/** Returns the size in bytes of `_OBJObj_t`. */
+/** Returns the size in bytes of `OBJObj_t`. */
 size_t objo_size (void);
 
-DynamicArr_t *objo_get_faces (_OBJObj_t *o);
+DynamicArr_t *objo_get_faces (OBJObj_t *o);
 
 #endif /* _WAVEFRONT_OBJ_OBJECTS_H_ */

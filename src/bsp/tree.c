@@ -131,7 +131,7 @@ score_split_basic (float o[static 1], float n[static 1], size_t idx,
 }
 
 OBJFace_t *
-find_splitting_plane (_OBJObj_t *o)
+find_splitting_plane (OBJObj_t *o)
 {
   DynamicArr_t *faces = objo_get_faces (o);
   if (!faces)
@@ -251,7 +251,7 @@ bsp_alloc (OBJFile_t *o)
   const size_t N_OBJS = DynA_get_size (objs);
   for (size_t i = 0; i < N_OBJS; i++)
     {
-      _OBJObj_t *curr = *(_OBJObj_t **)DynA_at (objs, i);
+      OBJObj_t *curr = *(OBJObj_t **)DynA_at (objs, i);
 
       OBJFace_t *splitting_plane = find_splitting_plane (curr);
       if (!splitting_plane)

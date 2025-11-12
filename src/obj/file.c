@@ -16,7 +16,7 @@ struct _OBJFile_s
 static int
 process_object (OBJFile_t *o, FILE *fptr, char *input)
 {
-  _OBJObj_t *obj = objo_alloc (input, fptr);
+  OBJObj_t *obj = objo_alloc (input, fptr);
   if (!obj)
     return -1;
 
@@ -84,7 +84,7 @@ obj_alloc (char path[static 1])
     }
 
   // Yes, all pointers are the same size, but this is more self-documenting ig
-  o->objs = DynA_alloc (sizeof (_OBJObj_t *));
+  o->objs = DynA_alloc (sizeof (OBJObj_t *));
   if (!o->objs)
     {
       WAVOBJ_OOM_ERR ();
@@ -124,7 +124,7 @@ obj_free (OBJFile_t *o)
 
   size_t n_objs = DynA_get_size (o->objs);
   for (size_t i = 0; i < n_objs; i++)
-    objo_free (*(_OBJObj_t **)DynA_at (o->objs, i));
+    objo_free (*(OBJObj_t **)DynA_at (o->objs, i));
 
   if (o->objs)
     DynA_free (o->objs);
